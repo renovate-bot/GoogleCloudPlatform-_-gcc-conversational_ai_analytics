@@ -2,7 +2,7 @@ module "cf_custom_schema" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
   project_id  = var.project_id
   region      = var.region
-  name        = "custom-schema-sample"
+  name        = var.function_name
   bucket_name = var.bucket_name
   bundle_config = {
     path = "${path.module}/function-source-code"
@@ -17,12 +17,12 @@ module "cf_custom_schema" {
 
     retry_policy = "RETRY_POLICY_RETRY"
 
-    region = "us"
+    region = var.trigger_location
 
     event_filters = [
       {
         attribute = "bucket"
-        value = "ccai-insights-test"
+        value = var.trigger_bucket_name
       }
     ]
   }

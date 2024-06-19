@@ -69,7 +69,16 @@ module "custom-schema-sample" {
   project_id = var.project_id
   region = var.region
 
+  function_name = "custom-schema-sample"
   service_account_email = module.ccai_insights_sa.email
   bucket_name = module.cf_bundle_bucket.name
+
+  trigger_bucket_name = "ccai-insights-test"
+  trigger_location = "us"
+
+  depends_on = [ 
+    module.ccai_insights_sa,
+    module.cf_bundle_bucket
+  ]
 }
 

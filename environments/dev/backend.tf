@@ -14,7 +14,7 @@
 
 terraform {
   backend "gcs" {
-    bucket = "ccai-insights-offering-demo"
+    bucket = "ccai-insights-offering-tfstate"
     prefix = "env/dev"
   }
 }

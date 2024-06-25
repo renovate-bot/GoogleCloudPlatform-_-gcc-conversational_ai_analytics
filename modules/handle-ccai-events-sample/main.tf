@@ -4,6 +4,8 @@ module "pubsub_topic" {
   name        = var.pubsub_topic_name
 }
 
+
+
 module "cf_handle_ccai_events" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
   project_id  = var.project_id

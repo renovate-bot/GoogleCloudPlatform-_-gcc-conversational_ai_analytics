@@ -1,4 +1,4 @@
-project_id="sbx-777-dev"
+project_id="gsd-ccai-insights-offering"
 region="us-central1"
 bigquery_dataset = "ccai_demo1"
 bigquery_table = "conversation_analysis"

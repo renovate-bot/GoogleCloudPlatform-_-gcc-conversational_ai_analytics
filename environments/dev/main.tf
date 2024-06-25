@@ -21,6 +21,10 @@ provider "google" {
   project = "${var.project_id}"
 }
 
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
 module "ccai_insights_sa" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0&depth=1"
   project_id = var.project_id
@@ -64,6 +68,15 @@ module "ccai_insights_to_bq" {
   depends_on = [ module.ccai_insights_sa ]
 }
 
+# This module shows how to create a Cloud Function that reacts to the creation of GCS objects
+
+# the GCS service account needs to have permissions to publish Eventarc events
+resource "google_project_iam_member" "gcs_pubsub_publisher" { 
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:service-${data.google_project.project.number}gs-project-accounts.iam.gserviceaccount.com"
+}
+
 module "custom-schema-sample" {
   source  = "../../modules/custom-schema-sample"
   project_id = var.project_id
@@ -73,7 +86,7 @@ module "custom-schema-sample" {
   service_account_email = module.ccai_insights_sa.email
   cf_bucket_name = module.cf_bundle_bucket.name
 
-  trigger_bucket_name = "ccai-insights-test"
+  trigger_bucket_name = "ccai-sample-data-8854"
   trigger_location = "us"
 
   depends_on = [ 

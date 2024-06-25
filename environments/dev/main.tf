@@ -74,7 +74,7 @@ module "ccai_insights_to_bq" {
 resource "google_project_iam_member" "gcs_pubsub_publisher" { 
   project = var.project_id
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:service-${data.google_project.project.number}gs-project-accounts.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
 module "custom-schema-sample" {
@@ -91,7 +91,8 @@ module "custom-schema-sample" {
 
   depends_on = [ 
     module.ccai_insights_sa,
-    module.cf_bundle_bucket
+    module.cf_bundle_bucket,
+    google_project_iam_member.gcs_pubsub_publisher
   ]
 }
 

@@ -14,8 +14,9 @@ variable "service_account_email" {
   type = string
 }
 
-variable "bucket_name" {
+variable "cf_bucket_name" {
   type = string
+  description = "Bucket used for storing the Cloud Function bundle"
 }
 
 variable "trigger_bucket_name" {

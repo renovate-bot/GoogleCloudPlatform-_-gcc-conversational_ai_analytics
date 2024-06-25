@@ -1,0 +1,26 @@
+# Compiled Python files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
+.venv/
+
+function-source-code/bundle.zip
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Local configuration
+.env
+.env.*
+
+# IDE files
+.idea/
+*.iml
+
+# Logs
+*.log

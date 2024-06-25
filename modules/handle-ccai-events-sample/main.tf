@@ -1,9 +1,16 @@
-module "cf_custom_schema" {
+module "pubsub_topic" {
+  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/pubsub"
+  project_id  = var.project_id
+  name        = var.pubsub_topic_name
+}
+
+module "cf_handle_ccai_events" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
   project_id  = var.project_id
   region      = var.region
   name        = var.function_name
   bucket_name = var.cf_bucket_name
+
   bundle_config = {
     path = "${path.module}/function-source-code"
     folder_options = {
@@ -11,19 +18,10 @@ module "cf_custom_schema" {
         excludes     = ["__pycache__"]
     }
   }
+
   trigger_config = {
-    event_type            = "google.cloud.storage.object.v1.finalized"
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
     service_account_email = var.service_account_email
-
-    retry_policy = "RETRY_POLICY_RETRY"
-
-    region = var.trigger_location
-
-    event_filters = [
-      {
-        attribute = "bucket"
-        value = var.trigger_bucket_name
-      }
-    ]
+    pubsub_topic = module.pubsub_topic.id
   }
 }

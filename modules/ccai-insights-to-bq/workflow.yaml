@@ -1,22 +1,23 @@
 main:
+  params: [args]
   steps:
     - init:
         assign:
-          - project_id: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
-          - region: "us-central1"
-          - bigquery_dataset: "ccai_insights"
-          - bigquery_table: "conversation_analysis"
+          - bigquery_project_id: ${args.bigquery_project_id}
+          - ccai_insights_region: ${args.ccai_insights_region}
+          - bigquery_dataset: ${args.bigquery_dataset}
+          - bigquery_table: ${args.bigquery_table}
     - exportToBigQuery:
         call: http.post
         args:
-          url: ${"https://contactcenterinsights.googleapis.com/v1/projects/" + project_id + "/locations/" + region + "/insightsdata:export"}
+          url: ${"https://contactcenterinsights.googleapis.com/v1/projects/" + bigquery_project_id + "/locations/" + ccai_insights_region + "/insightsdata:export"}
           headers:
             Content-Type: application/json
           auth:
             type: OAuth2
           body:
             bigQueryDestination:
-              projectId: ${project_id}
+              projectId: ${bigquery_project_id}
               dataset: ${bigquery_dataset}
               table: ${bigquery_table}
         result: exportToBigqueryResponse

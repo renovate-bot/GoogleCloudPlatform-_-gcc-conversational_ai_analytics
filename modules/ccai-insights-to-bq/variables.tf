@@ -6,6 +6,14 @@ variable "region" {
   type = string
 }
 
+variable "ccai_insights_region" {
+  type = string
+}
+
+variable "bigquery_project_id" {
+  type = string
+}
+
 variable "bigquery_dataset" {
   type = string
 }

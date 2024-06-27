@@ -12,11 +12,6 @@ resource "google_workflows_workflow" "ccai_to_bq" {
     description     = "Exports the CCAI Insights conversations to BigQuery"
     service_account = data.google_service_account.ccai_insights_sa.id
 
-    user_env_vars = {
-        bigquery_project = var.project_id
-        bigquery_dataset = var.bigquery_dataset,
-        bigquery_table = var.bigquery_table,
-    }
     source_contents = data.local_file.export_to_bq.content
 }
 
@@ -35,5 +30,15 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
         oauth_token {
             service_account_email = data.google_service_account.ccai_insights_sa.email
         }
+        body        = base64encode(
+            <<-EOF
+                {
+                    "ccai_insights_region":"${var.ccai_insights_region}",
+                    "bigquery_project_id":"${var.bigquery_project_id}",
+                    "bigquery_dataset":"${var.bigquery_dataset}",
+                    "bigquery_table":"${var.bigquery_table}"
+                } 
+            EOF
+        )
     }
 }

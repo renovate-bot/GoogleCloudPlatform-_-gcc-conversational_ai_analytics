@@ -54,15 +54,34 @@ module "cf_bundle_bucket" {
   location   = "US"
 }
 
+# locals {
+#   ccai_export_bq_table_name = "export"
+# }
+
+module "ccai_export_bq_dataset" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset"
+  project_id = var.project_id
+  id         = "ccai_insights"
+
+  tables = {
+    export = {
+      friendly_name = "export"
+    }
+  }
+}
+
+
 
 module "ccai_insights_to_bq" {
   source  = "../../modules/ccai-insights-to-bq"
   project_id = var.project_id
   region = var.region
   
-  bigquery_dataset = var.bigquery_dataset
-  bigquery_table = var.bigquery_dataset
-  export_to_bq_cron   = var.export_to_bq_cron
+  ccai_insights_region = var.region
+  bigquery_project_id = var.project_id
+  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
+  bigquery_table = module.ccai_export_bq_dataset.tables.export.friendly_name
+  export_to_bq_cron   = "0 */2 * * *"
   service_account_id = module.ccai_insights_sa.id
 
   depends_on = [ module.ccai_insights_sa ]

@@ -30,7 +30,7 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
         oauth_token {
             service_account_email = data.google_service_account.ccai_insights_sa.email
         }
-        body        = base64encode(
+        body = base64encode(
             <<-EOF
                 {
                     "ccai_insights_region":"${var.ccai_insights_region}",

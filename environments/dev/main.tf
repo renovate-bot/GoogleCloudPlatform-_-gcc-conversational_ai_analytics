@@ -70,6 +70,18 @@ module "ccai_export_bq_dataset" {
   }
 }
 
+## This module creates random conversation every 5 minutes (for TESTING purposes!!!!!)
+module "demo_conversation_creation" {
+  source  = "../../modules/demo-conversation-creation"
+  project_id = var.project_id
+  region = var.region
+  
+  create_conversation_cron   = "*/5 * * * *"
+  service_account_id = module.ccai_insights_sa.id
+
+  depends_on = [ module.ccai_insights_sa ]
+}
+
 
 
 module "ccai_insights_to_bq" {

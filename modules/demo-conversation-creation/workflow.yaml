@@ -40,66 +40,66 @@ main:
         args:
           text: ${"Conversation upload name:"+uploadConversationResult.body.name}
           severity: "INFO" # Optional
-    - waitUntilUploadFinishes:
-        call: ConversationUploadWaitUntilDone
-        args:
-          operation_name: ${uploadConversationResult.body.name}
-    - analyzeConversation:
-        call: http.post
-        args:
-          url: ${"https://contactcenterinsights.googleapis.com/v1/"+uploadConversationResult.body.metadata.request.parent+"/conversations/"+uploadConversationResult.body.metadata.request.conversationId+"/analyses"}
-          headers:
-            Content-Type: application/json
-          auth:
-            type: OAuth2
-          body:
-            name: "dummy" #the API needs to receive a body
-        result: analyzeConversationResult
-    - logAnalyzeConversationResponse:
-        call: sys.log
-        args:
-          data: ${analyzeConversationResult.body}
-          severity: "INFO" # Optional
-ConversationUploadWaitUntilDone:
-  params: [operation_name]
-  steps:
-    - init:
-        assign:
-          - is_done: false
-    - check_condition:
-        switch:
-          - condition: ${is_done == false}
-            next: iterate
-        next: exit_success
-    - iterate:
-        steps:
-          - sleep30s:
-              call: sys.sleep
-              args:
-                seconds: 5
-          - logUrl:
-              call: sys.log
-              args:
-                text: ${"https://contactcenterinsights.googleapis.com/v1/"+operation_name}
-                severity: "INFO"
-          - requestStatus:
-              call: http.get
-              args:
-                url: ${"https://contactcenterinsights.googleapis.com/v1/"+operation_name}
-                auth:
-                  type: OAuth2
-              result: requestStatusResponse
-          - getStatus:
-              assign:
-                - is_done: ${requestStatusResponse.body.done}
-          - log:
-              call: sys.log
-              args:
-                text: ${"Current="+is_done}
-                severity: "INFO"
-        next: check_condition
-    - exit_success:
-        return: ${is_done}
-    - exit_fail:
-        raise: ${"Job in unexpected terminal status "}
+#     - waitUntilUploadFinishes:
+#         call: ConversationUploadWaitUntilDone
+#         args:
+#           operation_name: ${uploadConversationResult.body.name}
+#     - analyzeConversation:
+#         call: http.post
+#         args:
+#           url: ${"https://contactcenterinsights.googleapis.com/v1/"+uploadConversationResult.body.metadata.request.parent+"/conversations/"+uploadConversationResult.body.metadata.request.conversationId+"/analyses"}
+#           headers:
+#             Content-Type: application/json
+#           auth:
+#             type: OAuth2
+#           body:
+#             name: "dummy" #the API needs to receive a body
+#         result: analyzeConversationResult
+#     - logAnalyzeConversationResponse:
+#         call: sys.log
+#         args:
+#           data: ${analyzeConversationResult.body}
+#           severity: "INFO" # Optional
+# ConversationUploadWaitUntilDone:
+#   params: [operation_name]
+#   steps:
+#     - init:
+#         assign:
+#           - is_done: false
+#     - check_condition:
+#         switch:
+#           - condition: ${is_done == false}
+#             next: iterate
+#         next: exit_success
+#     - iterate:
+#         steps:
+#           - sleep30s:
+#               call: sys.sleep
+#               args:
+#                 seconds: 5
+#           - logUrl:
+#               call: sys.log
+#               args:
+#                 text: ${"https://contactcenterinsights.googleapis.com/v1/"+operation_name}
+#                 severity: "INFO"
+#           - requestStatus:
+#               call: http.get
+#               args:
+#                 url: ${"https://contactcenterinsights.googleapis.com/v1/"+operation_name}
+#                 auth:
+#                   type: OAuth2
+#               result: requestStatusResponse
+#           - getStatus:
+#               assign:
+#                 - is_done: ${requestStatusResponse.body.done}
+#           - log:
+#               call: sys.log
+#               args:
+#                 text: ${"Current="+is_done}
+#                 severity: "INFO"
+#         next: check_condition
+#     - exit_success:
+#         return: ${is_done}
+#     - exit_fail:
+#         raise: ${"Job in unexpected terminal status "}
       

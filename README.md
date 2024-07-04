@@ -11,8 +11,6 @@ sudo mv terraform_1.7.4_linux_amd64/terraform /usr/local/bin/
 ```
 You need to close and re-open the terminal for this to take effect.
 
-## Cloudshell login
 
-```sh
-gcloud auth application-default login
-```
+
+

@@ -75,16 +75,16 @@ module "ccai_export_bq_dataset" {
 }
 
 ## This module creates random conversation every 5 minutes (for TESTING purposes!!!!!)
-module "demo_conversation_creation" {
-  source  = "../../modules/demo-conversation-creation"
-  project_id = var.project_id
-  region = var.region
+# module "demo_conversation_creation" {
+#   source  = "../../modules/demo-conversation-creation"
+#   project_id = var.project_id
+#   region = var.region
   
-  create_conversation_cron   = "*/5 * * * *"
-  service_account_id = module.ccai_insights_sa.id
+#   create_conversation_cron   = "*/5 * * * *"
+#   service_account_id = module.ccai_insights_sa.id
 
-  depends_on = [ module.ccai_insights_sa ]
-}
+#   depends_on = [ module.ccai_insights_sa ]
+# }
 
 
 ## This module creates a Cloud Scheduler job that exports CCAI Insights data to BigQuery

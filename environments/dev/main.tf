@@ -25,6 +25,16 @@ data "google_project" "project" {
   project_id = var.project_id
 }
 
+## CCAI Insights Service Account BigQuery access
+resource "google_project_iam_binding" "project" {
+  project = var.project_id
+  role    = "roles/bigquery.admin"
+
+  members = [
+    "serviceAccount:service-${data.google_project.project.number}@gcp-sa-contactcenterinsights.iam.gserviceaccount.com",
+  ]
+}
+
 module "ccai_insights_sa" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0&depth=1"
   project_id = var.project_id
@@ -36,7 +46,6 @@ module "ccai_insights_sa" {
       "roles/contactcenterinsights.editor",
       "roles/logging.logWriter",
       "roles/workflows.invoker",
-
 
        # only required if GCS/PubSub trigger will be used by Cloud Function v2
       "roles/pubsub.publisher",
@@ -65,11 +74,17 @@ module "cf_bundle_bucket" {
 module "ccai_export_bq_dataset" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset"
   project_id = var.project_id
-  id         = "ccai_insights"
+  id         = "ccai_insights_export"
+  location   =  "US" # needs to be in the same location as CCAI Insights
 
   tables = {
     export = {
+      # deletion_protection = false
       friendly_name = "export"
+    }
+    export_staging = {
+      # deletion_protection = false
+      friendly_name = "export_staging"
     }
   }
 }
@@ -87,17 +102,23 @@ module "ccai_export_bq_dataset" {
 # }
 
 
-## This module creates a Cloud Scheduler job that exports CCAI Insights data to BigQuery
+# This module creates a Cloud Scheduler job that exports CCAI Insights data to BigQuery
 module "ccai_insights_to_bq" {
-  source  = "../../modules/export-ccai-insights-to-bq"
+  source  = "../../modules/export-to-bq"
   project_id = var.project_id
   region = var.region
+
+  function_name = "export-to-bq"
+  cf_bucket_name = module.cf_bundle_bucket.name
   
-  ccai_insights_region = var.region
+  ccai_insights_location_id = var.region
+  ccai_insights_project_id = var.project_id
   bigquery_project_id = var.project_id
-  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
-  bigquery_table = module.ccai_export_bq_dataset.tables.export.friendly_name
-  export_to_bq_cron   = "0 */2 * * *"
+  bigquery_staging_dataset = module.ccai_export_bq_dataset.dataset_id
+  bigquery_staging_table = module.ccai_export_bq_dataset.tables.export_staging.friendly_name
+  bigquery_final_dataset = module.ccai_export_bq_dataset.dataset_id
+  bigquery_final_table = module.ccai_export_bq_dataset.tables.export.friendly_name
+  export_to_bq_cron   = "0 * * * *"
   service_account_id = module.ccai_insights_sa.id
 
   depends_on = [ module.ccai_insights_sa ]

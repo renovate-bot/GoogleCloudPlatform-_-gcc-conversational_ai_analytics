@@ -3,7 +3,7 @@
 ## Variables
 ```sh
 PROJECT_ID=gsd-ccai-insights-offering
-REGION=us-central1
+LOCATION_ID=us-central1
 ```
 
 ## List conversations
@@ -13,13 +13,27 @@ AGENT_ID="test-import-1"
 #with filter
 curl -X GET \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/conversations?filter=agent_id=\"${AGENT_ID}\""
+    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/conversations?filter=agent_id=\"${AGENT_ID}\""
 
 
 #all conversations (saved to file)
 curl -X GET \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/conversations" > response.json
+    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/conversations" > response.json
+```
+
+## Get Operation
+```sh
+OPERATION_ID=14233769529512447923
+curl -X GET \
+     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+     "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/operations/${OPERATION_ID}"
+
+curl -X GET \
+     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+     "https://contactcenterinsights.googleapis.com/v1/projects/322256122112/locations/us-central1/operations/13936322363375010459"
+
+
 ```
 
 ## Ingest conversations
@@ -59,7 +73,7 @@ curl -X POST \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept: application/json" \
     -d '{"filter":"","analysisPercentage":100}' \
-    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/conversations:bulkAnalyze"
+    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/conversations:bulkAnalyze"
 ```
 
 ## DANGER!: Bulk Delete
@@ -71,6 +85,6 @@ curl -X POST \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept: application/json" \
     -d '{"force":true,"max_delete_count":9999999}' \
-    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/conversations:bulkDelete"
+    "https://contactcenterinsights.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/conversations:bulkDelete"
 ```
 

@@ -4,13 +4,10 @@
 
 This CCAI Insights Looker Block uses the BQ export to provide a more holistic view of the business's call center and agent performance via the following dashboards:
 
-Call Center Performance: Executive dashboard displaying high-level metrics intended for call center management. 
-
-Agent Performance: Performance metrics for an individual agent, linked from the Agent ID dimension.
-
-Agent Operations: Performance metrics for agents in aggregate.
-
-Conversation Lookup Dashboard: Detailed transcript and sentiment analysis for an individual conversation, linked from the Conversation Name dimension.
+* Call Center Performance: Executive dashboard displaying high-level metrics intended for call center management. 
+* Agent Performance: Performance metrics for an individual agent, linked from the Agent ID dimension.
+* Agent Operations: Performance metrics for agents in aggregate.
+* Conversation Lookup Dashboard: Detailed transcript and sentiment analysis for an individual conversation, linked from the Conversation Name dimension.
 
 ## Instructions
 

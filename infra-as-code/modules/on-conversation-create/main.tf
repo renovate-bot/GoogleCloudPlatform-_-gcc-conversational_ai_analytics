@@ -1,8 +1,3 @@
-module "pubsub_topic" {
-  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/pubsub"
-  project_id  = var.project_id
-  name        = var.pubsub_topic_name
-}
 
 module "cf_handle_ccai_events" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
@@ -22,6 +17,6 @@ module "cf_handle_ccai_events" {
   trigger_config = {
     event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
     service_account_email = var.service_account_email
-    pubsub_topic = module.pubsub_topic.id
+    pubsub_topic = var.pubsub_topic_id
   }
 }

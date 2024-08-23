@@ -86,8 +86,51 @@ module "ccai_export_bq_dataset" {
       # deletion_protection = false
       friendly_name = "export_staging"
     }
+    export_full = {
+      # deletion_protection = false
+      friendly_name = "export_full"
+    }
+    custom_export = {
+      friendly_name = "custom_export"
+      schema = jsonencode([
+        { 
+          name = "conversationName", 
+          type = "STRING" 
+        },
+        { 
+          name = "latestSummary", 
+          type = "RECORD",
+          mode: "NULLABLE"
+          fields = [
+            {
+              name: "textSections",
+              type: "RECORD",
+              mode: "REPEATED",
+              fields: [
+                {
+                  name = "key", 
+                  type = "STRING",
+                },
+                {
+                  name = "value", 
+                  type = "STRING",
+                }
+              ]
+              }
+            ]
+        }
+      ])
+    } 
   }
 }
+
+module "pubsub_topic_conversation_created" {
+  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/pubsub"
+  project_id  = var.project_id
+  name        = "ccai-insights-conversation-created"
+}
+
+
 
 ## This module creates random conversation every 5 minutes (for TESTING purposes!!!!!)
 # module "demo_conversation_creation" {
@@ -103,12 +146,31 @@ module "ccai_export_bq_dataset" {
 
 
 # This module creates a Cloud Scheduler job that exports CCAI Insights data to BigQuery
-module "ccai_insights_to_bq" {
-  source  = "../../modules/export-to-bq"
+module "ccai_insights_to_bq_full" {
+  source  = "../../modules/export-to-bq-full"
   project_id = var.project_id
   region = var.region
 
-  function_name = "export-to-bq"
+  function_name = "export-to-bq-full"
+  cf_bucket_name = module.cf_bundle_bucket.name
+  
+  ccai_insights_location_id = var.region
+  ccai_insights_project_id = var.project_id
+  bigquery_project_id = var.project_id
+  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
+  bigquery_table = module.ccai_export_bq_dataset.tables.export_full.friendly_name
+  export_to_bq_cron   = "0 * * * *"
+  service_account_id = module.ccai_insights_sa.id
+
+  depends_on = [ module.ccai_insights_sa ]
+}
+
+module "ccai_insights_to_bq_incremental" {
+  source  = "../../modules/export-to-bq-incremental"
+  project_id = var.project_id
+  region = var.region
+
+  function_name = "export-to-bq-incremental"
   cf_bucket_name = module.cf_bundle_bucket.name
   
   ccai_insights_location_id = var.region
@@ -124,26 +186,6 @@ module "ccai_insights_to_bq" {
   depends_on = [ module.ccai_insights_sa ]
 }
 
-# This module shows how to create a Cloud Function that reacts to the creation of GCS objects
-
-module "custom-schema-sample" {
-  source  = "../../modules/custom-schema-sample"
-  project_id = var.project_id
-  region = var.region
-
-  function_name = "custom-schema-sample"
-  service_account_email = module.ccai_insights_sa.email
-  cf_bucket_name = module.cf_bundle_bucket.name
-
-  trigger_bucket_name = "ccai-sample-data-8854"
-  trigger_location = "us"
-
-  depends_on = [ 
-    module.ccai_insights_sa,
-    module.cf_bundle_bucket,
-    google_project_iam_member.gcs_pubsub_publisher
-  ]
-}
 
 # This module shows 
 module "on_conversation_create" {
@@ -155,11 +197,50 @@ module "on_conversation_create" {
   service_account_email = module.ccai_insights_sa.email
   cf_bucket_name = module.cf_bundle_bucket.name
 
-  pubsub_topic_name = "ccai-insights-conversation-uploaded"
+  pubsub_topic_id = module.pubsub_topic_conversation_created.topic.id
 
   depends_on = [ 
     module.ccai_insights_sa,
     module.cf_bundle_bucket
   ]
 }
+
+
+## Insights to PubSub to BQ
+# Grant the PubSub Service Account permission to write data to BigQuery
+resource "google_project_iam_member" "pubsub_bq_editor" {
+  project = data.google_project.project.project_id
+  role   = "roles/bigquery.dataEditor"
+  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "pubsub_bq_metadata_viewer" {
+  project = data.google_project.project.project_id
+  role   = "roles/bigquery.metadataViewer"
+  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
+
+module "ccai_insights_to_pubsub_to_bq" {
+  source  = "../../modules/ccai-insights-to-pubsub-to-bq"
+  project_id = var.project_id
+  region = var.region
+
+  function_name = "ccai-insights-to-pubsub-to-bq"
+  service_account_email = module.ccai_insights_sa.email
+  cf_bucket_name = module.cf_bundle_bucket.name
+
+  pubsub_topic_id_input_insights = module.pubsub_topic_conversation_created.topic.id
+  pubsub_topic_name_output_bq = "ccai-output-to-bq"
+
+  bigquery_project_id = var.project_id
+  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
+  bigquery_table = module.ccai_export_bq_dataset.tables.custom_export.friendly_name
+
+  depends_on = [ 
+    module.ccai_insights_sa,
+    module.cf_bundle_bucket
+  ]
+}
+
 

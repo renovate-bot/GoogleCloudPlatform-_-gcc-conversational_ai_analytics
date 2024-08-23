@@ -43,7 +43,7 @@ module "cf_export_to_bq" {
 }
 
 resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
-  name     = "export-ccai-to-bq-scheduler"
+  name     = "${var.function_name}-scheduler"
   region = var.region
   schedule = var.export_to_bq_cron
   description = "Schedule to export CCAI Insights conversations to BigQuery"

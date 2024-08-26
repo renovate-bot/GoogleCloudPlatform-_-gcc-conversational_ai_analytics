@@ -2,6 +2,7 @@ import functions_framework
 import json
 import os
 import time
+from datetime import datetime, timedelta
 
 from lib import CCCAIHelper
 
@@ -25,7 +26,15 @@ def main(request):
         bigquery_final_table=BIGQUERY_FINAL_TABLE
     )
 
-    export_operation = ccai_helper.submit_export_request()
+    now = datetime.now()
+    start_time = (now - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    # Filter based on conversation start time and only Analyzed conversations
+    filter_expression=f"start_time > \"{start_time}\" latest_analysis:\"*\""
+
+    print(f"Filter for exporting CCAI Insights Data: {filter_expression}")
+
+    export_operation = ccai_helper.submit_export_request(filter=filter_expression)
 
     for i in range(30):
         operation_result = ccai_helper.get_operation(export_operation["name"])

@@ -50,7 +50,9 @@ module "ccai_insights_sa" {
        # only required if GCS/PubSub trigger will be used by Cloud Function v2
       "roles/pubsub.publisher",
       "roles/run.invoker",
-      "roles/eventarc.eventReceiver"
+      "roles/eventarc.eventReceiver",
+      "roles/bigquery.dataEditor",
+      "roles/bigquery.jobUser"
     ]
   }
 }

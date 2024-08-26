@@ -96,11 +96,84 @@ class CCCAIHelper:
         final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
 
         merge_query = (
-            f'MERGE `{final_table}` T USING (SELECT conversationName, MAX(analysisTimestampUtc)'
-            f'AS max_time FROM `{staging_table}` GROUP BY conversationName) S'
-            'ON T.conversationName = S.conversationName'
-            'WHEN MATCHED AND T.analysisTimestampUtc != S.max_time THEN DELETE'
+            f'MERGE `{final_table}` T USING (SELECT conversationName, MAX(conversationUpdateTimestampUtc) '
+            f'AS max_time FROM `{staging_table}` GROUP BY conversationName) S '
+            'ON T.conversationName = S.conversationName '
+            'WHEN MATCHED AND T.conversationUpdateTimestampUtc != S.max_time THEN DELETE'
         )
+
+        merge_query = f'''MERGE `{final_table}` T 
+                USING (
+                    SELECT 
+                    conversationName, 
+                    audioFileUri, 
+                    dialogflowConversationProfileId, 
+                    startTimestampUtc, 
+                    loadTimestampUtc, 
+                    analysisTimestampUtc, 
+                    conversationUpdateTimestampUtc, 
+                    year,
+                    month,
+                    day, 
+                    durationNanos, 
+                    silenceNanos, 
+                    silencePercentage, 
+                    agentSpeakingPercentage, 
+                    clientSpeakingPercentage, 
+                    agentSentimentScore, 
+                    agentSentimentMagnitude, 
+                    clientSentimentScore, 
+                    clientSentimentMagnitude, 
+                    transcript, 
+                    turnCount, 
+                    languageCode, 
+                    medium, 
+                    issues,
+                    entities,
+                    labels,
+                    words,
+                    sentences,
+                    latestSummary,
+                    qaScorecardResults,
+                    agents
+                    FROM `{staging_table}`) S 
+                    ON T.conversationName = S.conversationName 
+                WHEN MATCHED AND T.conversationUpdateTimestampUtc != S.conversationUpdateTimestampUtc THEN 
+                UPDATE SET
+                    audioFileUri = S.audioFileUri, 
+                    dialogflowConversationProfileId = S.dialogflowConversationProfileId, 
+                    startTimestampUtc = S.startTimestampUtc, 
+                    loadTimestampUtc = S.loadTimestampUtc, 
+                    analysisTimestampUtc = S.analysisTimestampUtc, 
+                    conversationUpdateTimestampUtc = S.conversationUpdateTimestampUtc, 
+                    year = S.year,
+                    month = S.month,
+                    day = S.day, 
+                    durationNanos = S.durationNanos, 
+                    silenceNanos = S.silenceNanos, 
+                    silencePercentage = S.silencePercentage, 
+                    agentSpeakingPercentage = S.agentSpeakingPercentage, 
+                    clientSpeakingPercentage = S.clientSpeakingPercentage, 
+                    agentSentimentScore = S.agentSentimentScore, 
+                    agentSentimentMagnitude = S.agentSentimentMagnitude, 
+                    clientSentimentScore = S.clientSentimentScore, 
+                    clientSentimentMagnitude = S.clientSentimentMagnitude, 
+                    transcript = S.transcript, 
+                    turnCount = S.turnCount, 
+                    languageCode = S.languageCode, 
+                    medium = S.medium, 
+                    issues = S.issues,
+                    entities = S.entities,
+                    labels = S.labels,
+                    words = S.words,
+                    sentences = S.sentences,
+                    latestSummary = S.latestSummary,
+                    qaScorecardResults = S.qaScorecardResults,
+                    agents = S.agents
+                WHEN NOT MATCHED THEN
+                INSERT ROW
+        '''
+
         print("Merge query to be executed:")
         print(merge_query)
 

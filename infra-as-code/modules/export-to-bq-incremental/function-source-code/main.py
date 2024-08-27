@@ -27,10 +27,10 @@ def main(request):
     )
 
     now = datetime.now()
-    start_time = (now - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    filter_start_time = (now - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     # Filter based on conversation start time and only Analyzed conversations
-    filter_expression=f"start_time > \"{start_time}\" latest_analysis:\"*\""
+    filter_expression=f"update_time > \"{filter_start_time}\" latest_analysis:\"*\""
 
     print(f"Filter for exporting CCAI Insights Data: {filter_expression}")
 

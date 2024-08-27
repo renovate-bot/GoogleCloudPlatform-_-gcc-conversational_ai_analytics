@@ -95,13 +95,6 @@ class CCCAIHelper:
         staging_table = f'{self.bigquery_project_id}.{self.bigquery_staging_dataset}.{self.bigquery_staging_table}'
         final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
 
-        merge_query = (
-            f'MERGE `{final_table}` T USING (SELECT conversationName, MAX(conversationUpdateTimestampUtc) '
-            f'AS max_time FROM `{staging_table}` GROUP BY conversationName) S '
-            'ON T.conversationName = S.conversationName '
-            'WHEN MATCHED AND T.conversationUpdateTimestampUtc != S.max_time THEN DELETE'
-        )
-
         merge_query = f'''MERGE `{final_table}` T 
                 USING (
                     SELECT 
@@ -139,46 +132,49 @@ class CCCAIHelper:
                     FROM `{staging_table}`) S 
                     ON T.conversationName = S.conversationName 
                 WHEN MATCHED AND T.conversationUpdateTimestampUtc != S.conversationUpdateTimestampUtc THEN 
-                UPDATE SET
-                    audioFileUri = S.audioFileUri, 
-                    dialogflowConversationProfileId = S.dialogflowConversationProfileId, 
-                    startTimestampUtc = S.startTimestampUtc, 
-                    loadTimestampUtc = S.loadTimestampUtc, 
-                    analysisTimestampUtc = S.analysisTimestampUtc, 
-                    conversationUpdateTimestampUtc = S.conversationUpdateTimestampUtc, 
-                    year = S.year,
-                    month = S.month,
-                    day = S.day, 
-                    durationNanos = S.durationNanos, 
-                    silenceNanos = S.silenceNanos, 
-                    silencePercentage = S.silencePercentage, 
-                    agentSpeakingPercentage = S.agentSpeakingPercentage, 
-                    clientSpeakingPercentage = S.clientSpeakingPercentage, 
-                    agentSentimentScore = S.agentSentimentScore, 
-                    agentSentimentMagnitude = S.agentSentimentMagnitude, 
-                    clientSentimentScore = S.clientSentimentScore, 
-                    clientSentimentMagnitude = S.clientSentimentMagnitude, 
-                    transcript = S.transcript, 
-                    turnCount = S.turnCount, 
-                    languageCode = S.languageCode, 
-                    medium = S.medium, 
-                    issues = S.issues,
-                    entities = S.entities,
-                    labels = S.labels,
-                    words = S.words,
-                    sentences = S.sentences,
-                    latestSummary = S.latestSummary,
-                    qaScorecardResults = S.qaScorecardResults,
-                    agents = S.agents
+                    UPDATE SET
+                        audioFileUri = S.audioFileUri, 
+                        dialogflowConversationProfileId = S.dialogflowConversationProfileId, 
+                        startTimestampUtc = S.startTimestampUtc, 
+                        loadTimestampUtc = S.loadTimestampUtc, 
+                        analysisTimestampUtc = S.analysisTimestampUtc, 
+                        conversationUpdateTimestampUtc = S.conversationUpdateTimestampUtc, 
+                        year = S.year,
+                        month = S.month,
+                        day = S.day, 
+                        durationNanos = S.durationNanos, 
+                        silenceNanos = S.silenceNanos, 
+                        silencePercentage = S.silencePercentage, 
+                        agentSpeakingPercentage = S.agentSpeakingPercentage, 
+                        clientSpeakingPercentage = S.clientSpeakingPercentage, 
+                        agentSentimentScore = S.agentSentimentScore, 
+                        agentSentimentMagnitude = S.agentSentimentMagnitude, 
+                        clientSentimentScore = S.clientSentimentScore, 
+                        clientSentimentMagnitude = S.clientSentimentMagnitude, 
+                        transcript = S.transcript, 
+                        turnCount = S.turnCount, 
+                        languageCode = S.languageCode, 
+                        medium = S.medium, 
+                        issues = S.issues,
+                        entities = S.entities,
+                        labels = S.labels,
+                        words = S.words,
+                        sentences = S.sentences,
+                        latestSummary = S.latestSummary,
+                        qaScorecardResults = S.qaScorecardResults,
+                        agents = S.agents
                 WHEN NOT MATCHED THEN
-                INSERT ROW
+                    INSERT ROW
         '''
 
         print("Merge query to be executed:")
         print(merge_query)
 
-        query_job = client.query(merge_query)  # API request
-        result = query_job.result()  # Waits for query to finish
+        merge_job = client.query(merge_query)  # API request
+        merge_result = merge_job.result()  # Waits for query to finish
 
         print("Merge query result:")
-        print(result)
+        print(f"job_id: {merge_job.job_id}")
+        print(f"num_dml_affected_rows: {merge_job.num_dml_affected_rows}")
+
+        

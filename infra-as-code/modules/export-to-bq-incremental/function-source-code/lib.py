@@ -1,3 +1,16 @@
+#    Copyright 2024 Google LLC
+
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+
+#        http://www.apache.org/licenses/LICENSE-2.0
+
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
 
 import requests
 import json
@@ -5,6 +18,7 @@ import google.auth
 import google.oauth2.credentials
 import google.auth.transport.requests
 import time
+import datetime
 
 from google.cloud import bigquery
 
@@ -95,7 +109,8 @@ class CCCAIHelper:
         staging_table = f'{self.bigquery_project_id}.{self.bigquery_staging_dataset}.{self.bigquery_staging_table}'
         final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
 
-        merge_query = f'''MERGE `{final_table}` T 
+        merge_query = f'''
+            MERGE `{final_table}` T 
                 USING (
                     SELECT 
                     conversationName, 
@@ -176,5 +191,28 @@ class CCCAIHelper:
         print("Merge query result:")
         print(f"job_id: {merge_job.job_id}")
         print(f"num_dml_affected_rows: {merge_job.num_dml_affected_rows}")
+    
+    def get_latest_update_time(self):
+        client = bigquery.Client()
+        final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
 
-        
+        query = f'''
+            SELECT MAX(conversationUpdateTimestampUtc) as maxTimestamp FROM `{final_table}`
+        '''
+
+        bq_job = client.query(query)
+
+        bq_job_result = bq_job.result()
+
+        maxTimestamp = None
+        for row in bq_job_result:
+            maxTimestamp = row['maxTimestamp']
+
+        print(f"maxTimestamp found: `{maxTimestamp}`")
+
+        dt = datetime.datetime.fromtimestamp(maxTimestamp)
+        formatted_time = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        print(f"maxTimestamp found (formatted): `{formatted_time}`")
+
+        return formatted_time

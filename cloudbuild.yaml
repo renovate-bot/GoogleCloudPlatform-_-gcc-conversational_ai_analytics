@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,11 +30,11 @@ steps:
   args: 
   - '-c'
   - |
-      if [ -d "environments/$BRANCH_NAME/" ]; then
-        cd environments/$BRANCH_NAME
+      if [ -d "infra-as-code/environments/$BRANCH_NAME/" ]; then
+        cd infra-as-code/environments/$BRANCH_NAME
         terraform init
       else
-        for dir in environments/*/
+        for dir in infra-as-code/environments/*/
         do 
           cd ${dir}   
           env=${dir%*/}
@@ -55,11 +55,11 @@ steps:
   args: 
   - '-c'
   - | 
-      if [ -d "environments/$BRANCH_NAME/" ]; then
-        cd environments/$BRANCH_NAME
+      if [ -d "infra-as-code/environments/$BRANCH_NAME/" ]; then
+        cd infra-as-code/environments/$BRANCH_NAME
         terraform plan
       else
-        for dir in environments/*/
+        for dir in infra-as-code/environments/*/
         do 
           cd ${dir}   
           env=${dir%*/}
@@ -81,8 +81,8 @@ steps:
   args: 
   - '-c'
   - | 
-      if [ -d "environments/$BRANCH_NAME/" ]; then
-        cd environments/$BRANCH_NAME      
+      if [ -d "infra-as-code/environments/$BRANCH_NAME/" ]; then
+        cd infra-as-code/environments/$BRANCH_NAME      
         terraform apply -auto-approve
       else
         echo "***************************** SKIPPING APPLYING *******************************"

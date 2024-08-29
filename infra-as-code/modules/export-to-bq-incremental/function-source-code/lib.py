@@ -22,7 +22,7 @@ import datetime
 
 from google.cloud import bigquery
 
-class CCCAIHelper:
+class InsightsHelper:
     ccai_insights_project_id: str
     ccai_insights_location_id: str
     bigquery_project_id: str
@@ -30,6 +30,11 @@ class CCCAIHelper:
     bigquery_staging_table: str
     bigquery_final_dataset: str
     bigquery_final_table: str
+
+    bq_client = None
+
+    INSIGHTS_BASE_URL = 'https://contactcenterinsights.googleapis.com/v1'
+    insights_url_with_location = None
 
     def __init__(
         self, 
@@ -50,6 +55,15 @@ class CCCAIHelper:
         self.bigquery_final_dataset = bigquery_final_dataset
         self.bigquery_final_table = bigquery_final_table
 
+        self.bq_client = bigquery.Client()
+
+        self.staging_table_id = f'{self.bigquery_project_id}.{self.bigquery_staging_dataset}.{self.bigquery_staging_table}'
+        self.final_table_id = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
+
+        self.insights_url_with_location = ( self.INSIGHTS_BASE_URL 
+            + f'/projects/{self.ccai_insights_project_id}/locations/{self.ccai_insights_location_id}')
+
+
     def get_token(self):
         creds, _ = google.auth.default(
             scopes=['https://www.googleapis.com/auth/cloud-platform'])
@@ -67,7 +81,7 @@ class CCCAIHelper:
             'Authorization': f'Bearer {self.get_token()}'
         }
 
-        url = (f'https://contactcenterinsights.googleapis.com/v1/{operation_name}')
+        url = (f'{self.INSIGHTS_BASE_URL}/{operation_name}')
 
         response = requests.get(url, headers=headers)
         response.raise_for_status()
@@ -82,20 +96,19 @@ class CCCAIHelper:
         }
 
         request_data = {
-            "parent": f"projects/{self.ccai_insights_project_id}/locations/{self.ccai_insights_location_id}",
-            "writeDisposition":"WRITE_TRUNCATE",
-            "bigQueryDestination":{
-                "projectId":self.bigquery_project_id,
-                "dataset":self.bigquery_staging_dataset,
-                "table":self.bigquery_staging_table
+            'parent': f'projects/{self.ccai_insights_project_id}/locations/{self.ccai_insights_location_id}',
+            'writeDisposition':'WRITE_TRUNCATE',
+            'bigQueryDestination':{
+                'projectId':self.bigquery_project_id,
+                'dataset':self.bigquery_staging_dataset,
+                'table':self.bigquery_staging_table
             },
-            "filter":filter
+            'filter':filter
         }
-        print("BQ Export Request Data:")
+        print('BQ Export Request Data:')
         print(request_data)
 
-        url = ('https://contactcenterinsights.googleapis.com/v1/'
-            f'projects/{self.ccai_insights_project_id}/locations/{self.ccai_insights_location_id}/insightsdata:export')
+        url = f'{self.insights_url_with_location}/insightsdata:export'
 
         response = requests.post(url, headers=headers, json=request_data)
         response.raise_for_status()
@@ -105,12 +118,8 @@ class CCCAIHelper:
         return response_json
     
     def execute_merge_query(self):
-        client = bigquery.Client()
-        staging_table = f'{self.bigquery_project_id}.{self.bigquery_staging_dataset}.{self.bigquery_staging_table}'
-        final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
-
         merge_query = f'''
-            MERGE `{final_table}` T 
+            MERGE `{self.final_table_id}` T 
                 USING (
                     SELECT 
                     conversationName, 
@@ -144,7 +153,7 @@ class CCCAIHelper:
                     latestSummary,
                     qaScorecardResults,
                     agents
-                    FROM `{staging_table}`) S 
+                    FROM `{self.staging_table_id}`) S 
                     ON T.conversationName = S.conversationName 
                 WHEN MATCHED AND T.conversationUpdateTimestampUtc != S.conversationUpdateTimestampUtc THEN 
                     UPDATE SET
@@ -182,37 +191,77 @@ class CCCAIHelper:
                     INSERT ROW
         '''
 
-        print("Merge query to be executed:")
+        print('Merge query to be executed:')
         print(merge_query)
 
-        merge_job = client.query(merge_query)  # API request
+        merge_job = self.bq_client.query(merge_query)  # API request
         merge_result = merge_job.result()  # Waits for query to finish
 
-        print("Merge query result:")
-        print(f"job_id: {merge_job.job_id}")
-        print(f"num_dml_affected_rows: {merge_job.num_dml_affected_rows}")
+        print('Merge query result:')
+        print(f'job_id: {merge_job.job_id}')
+        print(f'num_dml_affected_rows: {merge_job.num_dml_affected_rows}')
     
     def get_latest_update_time(self):
-        client = bigquery.Client()
-        final_table = f'{self.bigquery_project_id}.{self.bigquery_final_dataset}.{self.bigquery_final_table}'
-
         query = f'''
-            SELECT MAX(conversationUpdateTimestampUtc) as maxTimestamp FROM `{final_table}`
+            SELECT MAX(conversationUpdateTimestampUtc) as maxUpdateTimestamp FROM `{self.final_table_id}`
         '''
 
-        bq_job = client.query(query)
+        bq_job = self.bq_client.query(query)
 
         bq_job_result = bq_job.result()
 
-        maxTimestamp = None
+        maxUpdateTimestamp = None
         for row in bq_job_result:
-            maxTimestamp = row['maxTimestamp']
+            maxUpdateTimestamp = row['maxUpdateTimestamp']
 
-        print(f"maxTimestamp found: `{maxTimestamp}`")
+        if maxUpdateTimestamp is not None:
+            print(f'maxUpdateTimestamp found: `{maxUpdateTimestamp}`')
 
-        dt = datetime.datetime.fromtimestamp(maxTimestamp)
-        formatted_time = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+            dt = datetime.datetime.fromtimestamp(maxUpdateTimestamp)
+            formatted_time = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        print(f"maxTimestamp found (formatted): `{formatted_time}`")
+            print(f'maxUpdateTimestamp found (formatted): `{formatted_time}`')
 
-        return formatted_time
+            return formatted_time
+        else:
+            print(f'maxUpdateTimestamp not found!')
+            return None
+    
+    def get_conversation_count_bq(self):
+        query = f'''
+            SELECT count(*) as conversationCount FROM `{self.final_table_id}`
+        '''
+
+        bq_job = self.bq_client.query(query)
+
+        bq_job_result = bq_job.result()
+
+        conversationCount = None
+        for row in bq_job_result:
+            conversationCount = row['conversationCount']
+
+        if conversationCount is None:
+            raise Exception(f'There was a problem fetching the conversation count from `{self.final_table_id}`')
+
+        print(f'BQ conversationCount: `{conversationCount}`')
+
+        return conversationCount
+
+    def get_conversation_count_insights(self):
+        headers = {
+            'charset': 'utf-8',
+            'Content-type': 'application/json',
+            'Authorization': f'Bearer {self.get_token()}'
+        }
+
+        url = f'{self.insights_url_with_location}/conversations:calculateStats'
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        conversationCount = response.json()['conversationCount']
+
+        print(f'Insights conversationCount: `{conversationCount}`')
+        
+        return response.json()['conversationCount']
+

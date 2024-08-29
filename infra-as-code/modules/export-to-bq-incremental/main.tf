@@ -16,14 +16,9 @@ data "google_service_account" "ccai_insights_sa" {
   account_id = var.service_account_id
 }
 
-# resource "google_workflows_workflow" "ccai_to_bq" {
-#     name            = "export-ccai-to-bq"
-#     region          = var.region
-#     description     = "Exports the CCAI Insights conversations to BigQuery"
-#     service_account = data.google_service_account.ccai_insights_sa.id
-
-#     source_contents = data.local_file.export_to_bq.content
-# }
+locals {
+  timeout_seconds = 1800
+}
 
 module "cf_export_to_bq" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
@@ -39,6 +34,10 @@ module "cf_export_to_bq" {
     }
   }
   service_account = data.google_service_account.ccai_insights_sa.email
+
+  function_config = {
+    timeout_seconds = local.timeout_seconds
+  }
 
   environment_variables = {
     CCAI_INSIGHTS_PROJECT_ID = var.ccai_insights_project_id
@@ -57,7 +56,7 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
   region = var.region
   schedule = var.export_to_bq_cron
   description = "Schedule to export CCAI Insights conversations to BigQuery"
-  attempt_deadline = "120s"
+  attempt_deadline = "${local.timeout_seconds}s" #30 minutes
   retry_config {
       retry_count = 3
   }

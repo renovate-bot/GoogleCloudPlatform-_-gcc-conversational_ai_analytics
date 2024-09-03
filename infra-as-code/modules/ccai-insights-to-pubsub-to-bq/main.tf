@@ -13,33 +13,33 @@ module "pubsub_topic_output_bq" {
         "name" = "conversationName",
         "type" = "string"
         }
-        # ,
-        # {
-        #   "name" = "latestSummary",
-        #   "type" = "record",
-        #   "fields" = [
-        #     {
-        #       "name":"textSections",
-        #       "type": "array",
-        #       "items":[
-        #         {
-        #           "type":"record",
-        #           "name":"textSection",
-        #           "fields":[
-        #             {
-        #               "name":"key",
-        #               "type":"string"
-        #             },
-        #             {
-        #               "name":"value",
-        #               "type":"string"
-        #             }
-        #           ]
-        #         }
-        #       ]
-        #     }
-        #   ]
-        # }
+        ,
+        {
+          "name" = "latestSummary",
+          "type" = "record",
+          "fields" = [
+            {
+              "name":"textSections",
+              "type": "array",
+              "items":[
+                {
+                  "type":"record",
+                  "name":"textSection",
+                  "fields":[
+                    {
+                      "name":"key",
+                      "type":"string"
+                    },
+                    {
+                      "name":"value",
+                      "type":"string"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       ]
     })
   }

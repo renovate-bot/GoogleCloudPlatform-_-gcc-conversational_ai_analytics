@@ -28,7 +28,15 @@ def get_callback(
 
 for i in range(10):
     record = {
-        "conversationName": f"conversation{i}"
+        "conversationName": f"conversation{i}",
+        "latestSummary":{
+            "textSections":[
+                {
+                    "key":"isEmpathic",
+                    "value": "true"
+                }
+            ]
+        }
     }
     data = json.dumps(record)
     # When you publish a message, the client returns a future.

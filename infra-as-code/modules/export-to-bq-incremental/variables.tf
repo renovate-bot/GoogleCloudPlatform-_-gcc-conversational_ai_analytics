@@ -24,12 +24,12 @@ variable "region" {
 
 variable "ccai_insights_project_id" {
   type = string
-  description = "Project ID of the CCAI Insights instance"
+  description = "Project ID of CCAI Insights"
 }
 
 variable "ccai_insights_location_id" {
   type = string
-  description = "Location ID of the CCAI Insights instance"
+  description = "Location ID of CCAI Insights"
 }
 
 variable "bigquery_project_id" {
@@ -62,15 +62,17 @@ variable "export_to_bq_cron" {
   description = "CRON expression that defines how often the CCAI Insights data will be exported"
 }
 
-variable "service_account_id" {
+variable "service_account_email" {
   type = string
-  description = ""
+  description = "Service Account used as identity by the Cloud Function"
 }
 
 variable "cf_bucket_name" {
   type = string
+  description = "Bucket name to use for storing the Cloud Function bundle"
 }
 
 variable "function_name" {
   type = string
+  description = "Cloud Function name"
 }

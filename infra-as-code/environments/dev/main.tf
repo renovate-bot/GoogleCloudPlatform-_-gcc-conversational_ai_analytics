@@ -88,10 +88,6 @@ module "ccai_export_bq_dataset" {
       # deletion_protection = false
       friendly_name = "export_staging"
     }
-    export_full = {
-      # deletion_protection = false
-      friendly_name = "export_full"
-    }
     custom_export = {
       friendly_name = "custom_export"
       schema = jsonencode([
@@ -145,27 +141,6 @@ module "pubsub_topic_conversation_created" {
 
 #   depends_on = [ module.ccai_insights_sa ]
 # }
-
-
-# This module creates a Cloud Scheduler job that exports CCAI Insights data to BigQuery
-module "ccai_insights_to_bq_full" {
-  source  = "../../modules/export-to-bq-full"
-  project_id = var.project_id
-  region = var.region
-
-  function_name = "export-to-bq-full"
-  cf_bucket_name = module.cf_bundle_bucket.name
-  
-  ccai_insights_location_id = var.region
-  ccai_insights_project_id = var.project_id
-  bigquery_project_id = var.project_id
-  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
-  bigquery_table = module.ccai_export_bq_dataset.tables.export_full.friendly_name
-  export_to_bq_cron   = "0 * * * *"
-  service_account_id = module.ccai_insights_sa.id
-
-  depends_on = [ module.ccai_insights_sa ]
-}
 
 module "ccai_insights_to_bq_incremental" {
   source  = "../../modules/export-to-bq-incremental"

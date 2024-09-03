@@ -12,10 +12,6 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-data "google_service_account" "ccai_insights_sa" {
-  account_id = var.service_account_id
-}
-
 locals {
   timeout_seconds = 1800
 }
@@ -33,7 +29,7 @@ module "cf_export_to_bq" {
         excludes     = ["__pycache__"]
     }
   }
-  service_account = data.google_service_account.ccai_insights_sa.email
+  service_account = var.service_account_email
 
   function_config = {
     timeout_seconds = local.timeout_seconds
@@ -65,7 +61,7 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
     http_method = "POST"
     oidc_token {
         audience              = "${module.cf_export_to_bq.uri}/"
-        service_account_email = data.google_service_account.ccai_insights_sa.email
+        service_account_email = var.service_account_email
     }
   }
 }

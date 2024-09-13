@@ -1,6 +1,6 @@
 
 module "cf_handle_ccai_events" {
-  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
+  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"
   project_id  = var.project_id
   region      = var.region
   name        = var.function_name

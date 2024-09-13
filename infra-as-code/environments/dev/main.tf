@@ -66,7 +66,7 @@ resource "google_project_iam_member" "gcs_pubsub_publisher" {
 
 # This bucket will be used for storing the Cloud Functions bundle (.zip file with source code)
 module "cf_bundle_bucket" {
-  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs"
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
   project_id = var.project_id
   name       = "cf-bucket-24812"
   location   = "US"
@@ -74,7 +74,7 @@ module "cf_bundle_bucket" {
 
 
 module "ccai_export_bq_dataset" {
-  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset"
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset?ref=v31.1.0&depth=1"
   project_id = var.project_id
   id         = "ccai_insights_export"
   location   =  "US" # needs to be in the same location as CCAI Insights
@@ -123,7 +123,7 @@ module "ccai_export_bq_dataset" {
 }
 
 module "pubsub_topic_conversation_created" {
-  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/pubsub"
+  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/pubsub?ref=v31.1.0&depth=1"
   project_id  = var.project_id
   name        = "ccai-insights-conversation-created"
 }
@@ -158,29 +158,29 @@ module "ccai_insights_to_bq_incremental" {
   bigquery_final_dataset = module.ccai_export_bq_dataset.dataset_id
   bigquery_final_table = module.ccai_export_bq_dataset.tables.export.friendly_name
   export_to_bq_cron   = "0 * * * *"
-  service_account_id = module.ccai_insights_sa.id
+  service_account_email = module.ccai_insights_sa.id
 
   depends_on = [ module.ccai_insights_sa ]
 }
 
 
 # This module shows 
-module "on_conversation_create" {
-  source  = "../../modules/on-conversation-create"
-  project_id = var.project_id
-  region = var.region
+# module "on_conversation_create" {
+#   source  = "../../modules/on-conversation-create"
+#   project_id = var.project_id
+#   region = var.region
 
-  function_name = "on-ccai-insights-conversation-create"
-  service_account_email = module.ccai_insights_sa.email
-  cf_bucket_name = module.cf_bundle_bucket.name
+#   function_name = "on-ccai-insights-conversation-create"
+#   service_account_email = module.ccai_insights_sa.email
+#   cf_bucket_name = module.cf_bundle_bucket.name
 
-  pubsub_topic_id = module.pubsub_topic_conversation_created.topic.id
+#   pubsub_topic_id = module.pubsub_topic_conversation_created.topic.id
 
-  depends_on = [ 
-    module.ccai_insights_sa,
-    module.cf_bundle_bucket
-  ]
-}
+#   depends_on = [ 
+#     module.ccai_insights_sa,
+#     module.cf_bundle_bucket
+#   ]
+# }
 
 
 ## Insights to PubSub to BQ
@@ -195,29 +195,6 @@ resource "google_project_iam_member" "pubsub_bq_metadata_viewer" {
   project = data.google_project.project.project_id
   role   = "roles/bigquery.metadataViewer"
   member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
-}
-
-
-module "ccai_insights_to_pubsub_to_bq" {
-  source  = "../../modules/ccai-insights-to-pubsub-to-bq"
-  project_id = var.project_id
-  region = var.region
-
-  function_name = "ccai-insights-to-pubsub-to-bq"
-  service_account_email = module.ccai_insights_sa.email
-  cf_bucket_name = module.cf_bundle_bucket.name
-
-  pubsub_topic_id_input_insights = module.pubsub_topic_conversation_created.topic.id
-  pubsub_topic_name_output_bq = "ccai-output-to-bq"
-
-  bigquery_project_id = var.project_id
-  bigquery_dataset = module.ccai_export_bq_dataset.dataset_id
-  bigquery_table = module.ccai_export_bq_dataset.tables.custom_export.friendly_name
-
-  depends_on = [ 
-    module.ccai_insights_sa,
-    module.cf_bundle_bucket
-  ]
 }
 
 

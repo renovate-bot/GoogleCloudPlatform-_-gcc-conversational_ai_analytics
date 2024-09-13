@@ -17,7 +17,7 @@ locals {
 }
 
 module "cf_export_to_bq" {
-  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2"
+  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"
   project_id  = var.project_id
   region      = var.region
   name        = var.function_name
@@ -32,6 +32,7 @@ module "cf_export_to_bq" {
   service_account = var.service_account_email
 
   function_config = {
+    max_instance_count = 1 #Only one export at the time should be running
     timeout_seconds = local.timeout_seconds
   }
 
@@ -43,7 +44,6 @@ module "cf_export_to_bq" {
     BIGQUERY_STAGING_TABLE = var.bigquery_staging_table
     BIGQUERY_FINAL_DATASET = var.bigquery_final_dataset
     BIGQUERY_FINAL_TABLE = var.bigquery_final_table
-
   }
 }
 

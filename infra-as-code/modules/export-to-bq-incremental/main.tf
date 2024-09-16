@@ -25,8 +25,8 @@ module "cf_export_to_bq" {
   bundle_config = {
     path = "${path.module}/function-source-code"
     folder_options = {
-        archive_path = "${path.module}/function-source-code/bundle.zip"
-        excludes     = ["__pycache__"]
+      archive_path = "${path.module}/function-source-code/bundle.zip"
+      excludes     = ["__pycache__"]
     }
   }
   service_account = var.service_account_email
@@ -54,7 +54,7 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
   description = "Schedule to export CCAI Insights conversations to BigQuery"
   attempt_deadline = "${local.timeout_seconds}s" #30 minutes
   retry_config {
-      retry_count = 3
+    retry_count = 3
   }
   http_target {
     uri         = module.cf_export_to_bq.uri

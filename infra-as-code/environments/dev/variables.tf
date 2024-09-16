@@ -15,8 +15,10 @@
 
 variable "project_id" {
   type = string
+  description = "Project ID in which resources will be deployed"
 }
 
 variable "region" {
   type = string
+  description = "Region in which resources will be deployed"
 }

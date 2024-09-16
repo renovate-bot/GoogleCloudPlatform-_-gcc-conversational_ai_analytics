@@ -23,11 +23,8 @@ module "cf_export_to_bq" {
   name        = var.function_name
   bucket_name = var.cf_bucket_name
   bundle_config = {
-    path = "${path.module}/function-source-code"
-    folder_options = {
-      archive_path = "${path.module}/function-source-code/bundle.zip"
-      excludes     = ["__pycache__"]
-    }
+    source_dir  = "${path.module}/function-source-code"
+    output_path = "${path.module}/function-source-code/bundle.zip"
   }
   service_account = var.service_account_email
 

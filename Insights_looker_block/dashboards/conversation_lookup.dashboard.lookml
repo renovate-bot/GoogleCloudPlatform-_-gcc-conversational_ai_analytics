@@ -184,8 +184,8 @@
     model: insights
     explore: insights_data
     type: single_value
-    fields: [insights_data.agent_id]
-    sorts: [insights_data.agent_id]
+    fields: [insights_data__agents.agent_id]
+    sorts: [insights_data__agents.agent_id]
     limit: 500
     column_limit: 50
     custom_color_enabled: true

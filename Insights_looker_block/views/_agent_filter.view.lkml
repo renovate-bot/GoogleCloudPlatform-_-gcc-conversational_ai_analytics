@@ -15,15 +15,15 @@
 view: agent_filter {
   parameter: agent_id_selector {
     type: string
-    suggest_dimension: insights_data.agent_id
-    suggest_explore: insights_data
+    suggest_dimension: insights_data__agent_id_filter.agent_id
+    suggest_explore: insights_data__agent_id_filter
   }
 
   dimension: agent_id_selected {
     type: string
     sql:
     CASE
-      WHEN ${insights_data.agent_id} = {% parameter agent_id_selector %} THEN ${insights_data.agent_id}
+      WHEN ${insights_data__agents.agent_id} = {% parameter agent_id_selector %} THEN ${insights_data__agents.agent_id}
       ELSE ' All Other Agents'
     END
   ;;

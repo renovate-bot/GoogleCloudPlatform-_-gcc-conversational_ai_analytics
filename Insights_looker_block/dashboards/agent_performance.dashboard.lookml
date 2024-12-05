@@ -124,7 +124,7 @@
     hidden_fields:
     hidden_pivots: {}
     listen:
-      Agent ID Selector: insights_data.agent_id
+      Agent ID Selector: insights_data__agents.agent_id
       Start Date: insights_data.start_date
       Topic Name: insights_data__topics.name
       Medium: insights_data.medium
@@ -1060,7 +1060,7 @@
     hidden_fields:
     hidden_pivots: {}
     listen:
-      Agent ID Selector: insights_data.agent_id
+      Agent ID Selector: insights_data__agents.agent_id
       Start Date: insights_data.start_date
       Topic Name: insights_data__topics.name
       Medium: insights_data.medium
@@ -1172,7 +1172,7 @@
     hidden_fields:
     hidden_pivots: {}
     listen:
-      Agent ID Selector: insights_data.agent_id
+      Agent ID Selector: insights_data__agents.agent_id
       Start Date: insights_data.start_date
       Topic Name: insights_data__topics.name
       Medium: insights_data.medium
@@ -1318,14 +1318,13 @@
   - name: Medium
     title: Medium
     type: field_filter
-    default_value: '"PHONE_CALL"'
+    default_value: ''
     allow_multiple_values: true
     required: false
     ui_config:
       type: button_toggles
       display: inline
       options:
-      - PHONE_CALL
     model: insights
     explore: insights_data
     listens_to_filters: []

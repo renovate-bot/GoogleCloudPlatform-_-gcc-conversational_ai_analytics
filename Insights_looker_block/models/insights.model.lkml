@@ -81,12 +81,61 @@ explore: insights_data {
     relationship: one_to_many
   }
 
+  join: insights_data__sentences__highlight_data {
+    view_label: "2: Sentences"
+    sql: LEFT JOIN UNNEST(${insights_data__sentences.highlight_data}) as insights_data__sentences__highlight_data ;;
+    relationship: one_to_many
+  }
+
+
   join: sentence_turn_number {
     view_label: "2: Sentences"
     relationship: one_to_many
     sql_on: ${insights_data.conversation_name}=${sentence_turn_number.conversation_name}
           and ${insights_data__sentences.sentence} = ${sentence_turn_number.sentence}
           and ${insights_data__sentences.created_raw} = ${sentence_turn_number.created_raw};;
+  }
+
+  join: insights_data__agents {
+    view_label: "6: Agents"
+    sql: LEFT JOIN UNNEST(${insights_data.agents}) as insights_data__agents ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__latest_summary__metadata {
+    view_label: "5: Latest Summary"
+    sql: LEFT JOIN UNNEST(${insights_data.latest_summary__metadata}) as insights_data__latest_summary__metadata ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__latest_summary__text_sections {
+    view_label: "5: Latest Summary"
+    sql: LEFT JOIN UNNEST(${insights_data.latest_summary__text_sections}) as insights_data__latest_summary__text_sections ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__qa_scorecard_results {
+    view_label: "7: QA Scorecard"
+    sql: LEFT JOIN UNNEST(${insights_data.qa_scorecard_results}) as insights_data__qa_scorecard_results ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__qa_scorecard_results__qa_answers__tags {
+    view_label: "7: QA Scorecard"
+    sql: LEFT JOIN UNNEST(${insights_data__qa_scorecard_results.qa_answers__tags}) as insights_data__qa_scorecard_results__qa_answers__tags ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__qa_scorecard_results__qa_answers {
+    view_label: "7: QA Scorecard"
+    sql: LEFT JOIN UNNEST(${insights_data__qa_scorecard_results.qa_answers}) as insights_data__qa_scorecard_results__qa_answers ;;
+    relationship: one_to_many
+  }
+
+  join: insights_data__qa_scorecard_results__qa_tag_results {
+    view_label: "7: QA Scorecard"
+    sql: LEFT JOIN UNNEST(${insights_data__qa_scorecard_results.qa_tag_results}) as insights_data__qa_scorecard_results__qa_tag_results ;;
+    relationship: one_to_many
   }
 
   # join: human_agent_turns {
@@ -102,6 +151,7 @@ explore: insights_data {
   }
 
   join: agent_filter { # Select an agent to compare against other agents in Agent Performance Ranking dashboard
+    view_label: "6: Agents"
     type: left_outer
     sql:  ;;
     relationship: one_to_one
@@ -110,4 +160,5 @@ explore: insights_data {
 }
 
 explore: insights_data__topics_filter {hidden:yes}
-explore: insights_data__sentences__custom_highligh_filter {hidden:yes}
+explore: insights_data__sentences__custom_highlight_filter {hidden:yes}
+explore: insights_data__agent_id_filter {hidden:yes}

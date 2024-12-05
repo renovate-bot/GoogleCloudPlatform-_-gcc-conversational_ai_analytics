@@ -16,14 +16,9 @@ view: insights_data {
   sql_table_name: @{insights_table};;
   view_label: "1: Conversations"
 
-  dimension: agent_id {
-    type: string
-    description: "The user-provided identifier for the human agent who handled the conversation."
-    sql: ${TABLE}.agentId ;;
-    link: {
-      label: "Agent Performance Dashboard"
-      url: "/dashboards-next/insights::agent_performance?Agent+ID+Selector={{ value }}"
-    }
+  dimension: agents {
+    hidden: yes
+    sql: ${TABLE}.agents ;;
   }
 
   dimension: agent_sentiment_magnitude {
@@ -179,6 +174,52 @@ view: insights_data {
     sql: ${TABLE}.labels ;;
   }
 
+  dimension: latest_summary__answer_record {
+    type: string
+    description: "The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}"
+    sql: ${TABLE}.latestSummary.answerRecord ;;
+    group_label: "Latest Summary"
+    group_item_label: "Answer Record"
+  }
+
+  dimension: latest_summary__confidence {
+    type: number
+    description: "The confidence score of the summarization."
+    sql: ${TABLE}.latestSummary.confidence ;;
+    group_label: "Latest Summary"
+    group_item_label: "Confidence"
+  }
+
+  dimension: latest_summary__conversation_model {
+    type: string
+    description: "The name of the model that generates this summary. Format: projects/{project}/locations/{location}/conversationModels/{conversation_model}"
+    sql: ${TABLE}.latestSummary.conversationModel ;;
+    group_label: "Latest Summary"
+    group_item_label: "Conversation Model"
+  }
+
+  dimension: latest_summary__metadata {
+    hidden: yes
+    sql: ${TABLE}.latestSummary.metadata ;;
+    group_label: "Latest Summary"
+    group_item_label: "Metadata"
+  }
+
+  dimension: latest_summary__text {
+    type: string
+    description: "The summarization content that is concatenated into one string."
+    sql: ${TABLE}.latestSummary.text ;;
+    group_label: "Latest Summary"
+    group_item_label: "Text"
+  }
+
+  dimension: latest_summary__text_sections {
+    hidden: yes
+    sql: ${TABLE}.latestSummary.textSections ;;
+    group_label: "Latest Summary"
+    group_item_label: "Text Sections"
+  }
+
   dimension_group: load {
     group_label: "Dates"
     label: "Import"
@@ -200,6 +241,11 @@ view: insights_data {
     type: number
     description: "Month date part of `load_timestamp_utc`."
     sql: ${TABLE}.month ;;
+  }
+
+  dimension: qa_scorecard_results {
+    hidden: yes
+    sql: ${TABLE}.qaScorecardResults ;;
   }
 
   dimension: sentences {
@@ -517,7 +563,7 @@ view: insights_data {
     type: count
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.conversation_count&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&f[insights_data__topics.name]={{ _filters['insights_data__topics.name'] }}&f[insights_data.medium]={{ _filters['insights_data.medium'] }}&f[insights_data__sentences__phrase_match_data.display_name]={{ _filters['insights_data__sentences__phrase_match_data.display_name'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.conversation_count&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&f[insights_data__topics.name]={{ _filters['insights_data__topics.name'] }}&f[insights_data.medium]={{ _filters['insights_data.medium'] }}&f[insights_data__sentences__phrase_match_data.display_name]={{ _filters['insights_data__sentences__phrase_match_data.display_name'] }}&limit=500"
     }
     link: {
       label: "by Topic"
@@ -528,7 +574,7 @@ view: insights_data {
 
   measure: agent_count {
     type: count_distinct
-    sql: ${agent_id} ;;
+    sql: ${insights_data__agents.agent_id} ;;
     drill_fields: [convo_info*]
   }
 
@@ -588,7 +634,7 @@ view: insights_data {
     # drill_fields: [convo_info*, hold_minutes]
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.average_hold_minutes,insights_data.average_hold_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.average_hold_minutes,insights_data.average_hold_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
     link: {
       label: "by Topic"
@@ -614,7 +660,7 @@ view: insights_data {
     # drill_fields: [convo_info*, hold_minutes]
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.average_duration_minutes&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.average_duration_minutes&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
     link: {
       label: "by Topic"
@@ -647,7 +693,7 @@ view: insights_data {
     # drill_fields: [convo_info*, silence_minutes]
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.average_silence_minutes,insights_data.average_silence_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.average_silence_minutes,insights_data.average_silence_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
     link: {
       label: "by Topic"
@@ -699,7 +745,7 @@ view: insights_data {
     value_format_name: decimal_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.average_talk_minutes,insights_data.average_talk_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.average_talk_minutes,insights_data.average_talk_percentage&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
     link: {
       label: "by Topic"
@@ -745,7 +791,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.authentication_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.authentication_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -771,7 +817,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.check_issue_resolved_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.check_issue_resolved_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -797,7 +843,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.confirm_issue_resolved_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.confirm_issue_resolved_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -823,7 +869,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.closing_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.closing_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -849,7 +895,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.greeting_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.greeting_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -875,7 +921,7 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.inflammatory_agent_langugage_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.inflammatory_agent_langugage_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
@@ -901,13 +947,13 @@ view: insights_data {
     value_format_name: percent_0
     link: {
       label: "by Agent"
-      url: "/explore/insights/insights_data?fields=insights_data.agent_id,insights_data.ability_to_understand_agent_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
+      url: "/explore/insights/insights_data?fields=insights_data__agents.agent_id,insights_data.ability_to_understand_agent_pct&f[insights_data.start_date]={{ _filters['insights_data.start_date'] }}&limit=500"
     }
   }
 
 
   set: convo_info {
-    fields: [agent_id, conversation_name, turn_count, load_time, client_sentiment_category, agent_sentiment_category]
+    fields: [insights_data__agents.agent_id, conversation_name, turn_count, load_time, client_sentiment_category, agent_sentiment_category]
   }
 }
 
@@ -967,22 +1013,7 @@ view: insights_data__labels {
     description: "User-provided label value."
     sql: ${TABLE}.value ;;
   }
-  dimension: chatid {
-    label: "chatid"
-    group_label: "Labels"
-    type: string
-    description: "chatid"
-    sql: CASE WHEN ${key} = 'chatid' THEN ${value} ELSE NULL END ;;
-  }
-  dimension: lastconnectedqueue {
-    group_label: "Labels"
-    type: string
-    description: "chatid"
-    sql: CASE WHEN ${key} = 'lastconnectedqueue' THEN ${value} ELSE NULL END ;;
-  }
 }
-
-
 
 view: insights_data__topics {
   dimension: name {
@@ -1003,6 +1034,20 @@ view: insights_data__topics {
     sql: ${TABLE}.score ;;
   }
 
+  dimension: issuemodelid {
+    label: "Topic Model ID"
+    group_label: "Topics"
+    type: string
+    sql: ${TABLE}.issuemodelid  ;;
+  }
+
+  dimension: issueid {
+    label: "Topic ID"
+    group_label: "Topics"
+    type: string
+    sql: ${TABLE}.issueid  ;;
+  }
+
   measure: count {
     label: "Topic Count"
     group_label: "Topics"
@@ -1020,7 +1065,7 @@ view: insights_data__topics_filter {
   derived_table: {
     sql: SELECT
           insights_data__topics.name  AS topic_name
-          FROM insights_demo.insights_export  AS insights_data
+          FROM @{insights_table}  AS insights_data
           LEFT JOIN UNNEST(insights_data.issues) as insights_data__topics
           GROUP BY
               1 ;;
@@ -1168,6 +1213,11 @@ view: insights_data__sentences {
     sql: ${TABLE}.endOffsetNanos ;;
   }
 
+  dimension: highlight_data {
+    hidden: yes
+    sql: ${TABLE}.highlightData ;;
+  }
+
   dimension: intent_match_data {
     hidden: yes
     sql: ${TABLE}.intentMatchData ;;
@@ -1312,6 +1362,7 @@ view: insights_data__sentences {
   ############################# Measures ##################################
 
   measure: count {
+    label: "Sentence Count"
     type: count_distinct
     sql: ${sentence} ;;
   }
@@ -1375,7 +1426,7 @@ view: insights_data__sentences__annotations {
 view: insights_data__sentences__intent_match_data {
   #Documentation on Smart Highllights Here: https://cloud.google.com/contact-center/insights/docs/smart-highlights
   dimension: display_name {
-    #group_label: "Smart Highlights"
+    group_label: "Smart Highlights"
     label: "Smart Highlight Name"
     type: string
     description: "The human readable name of the matched intent."
@@ -1394,7 +1445,7 @@ view: insights_data__sentences__intent_match_data {
 
   measure: count {
     label: "Smart Highlight Count"
-    #group_label: "Smart Highlights"
+    group_label: "Smart Highlights"
     type: count
   }
 }
@@ -1402,7 +1453,7 @@ view: insights_data__sentences__intent_match_data {
 view: insights_data__sentences__phrase_match_data {
   dimension: display_name {
     label: "Custom Highlight Name"
-    #group_label: "Custom Highlights"
+    group_label: "Custom Highlights"
     type: string
     description: "The human readable name of the phrase matcher set up as a custom highlight in the Insights console."
     sql: case when ${TABLE}.displayName is null then "" else ${TABLE}.displayName end ;;
@@ -1435,11 +1486,11 @@ view: insights_data__sentences__phrase_match_data {
   }
 }
 
-view: insights_data__sentences__custom_highligh_filter {
+view: insights_data__sentences__custom_highlight_filter {
   derived_table: {
     sql: SELECT
           case when insights_data__sentences__phrase_match_data.displayName is null then "No Custom Highlight Match" else insights_data__sentences__phrase_match_data.displayName end  AS display_name
-          FROM insights_demo.insights_export AS insights_data
+          FROM @{insights_table} AS insights_data
           LEFT JOIN UNNEST(insights_data.sentences) as insights_data__sentences
           LEFT JOIN UNNEST(insights_data__sentences.phraseMatchData) as insights_data__sentences__phrase_match_data
           GROUP BY
@@ -1487,6 +1538,35 @@ view: insights_data__sentences__dialogflow_intent_match_data {
   }
 }
 
+view: insights_data__sentences__highlight_data {
+  #combined view of custom highlights and smart higlights into a single column
+  dimension: display_name {
+    label: "Highlighter Name"
+    group_label: "Highlighter"
+    type: string
+    description: "The human readable name of the highlighter."
+    sql: ${TABLE}.displayName ;;
+  }
+
+  dimension: highlighter_id {
+    primary_key: yes
+    hidden: yes
+    label: "Highlighter ID"
+    group_label: "Highlighter"
+    type: string
+    description: "The unique id of the highlighter."
+    sql: ${TABLE}.highlighterName ;;
+  }
+
+  dimension: type {
+    label: "Highlighter Type"
+    group_label: "Highlighter"
+    type: string
+    description: "The type of the highlighter."
+    sql: ${TABLE}.type ;;
+  }
+}
+
 view: sentence_turn_number {
   derived_table: {
     sql: SELECT
@@ -1494,7 +1574,7 @@ view: sentence_turn_number {
           insights_data__sentences.sentence  AS sentence,
               insights_data__sentences.createTimeNanos AS created_test,
               rank() over(partition by insights_data.conversationName order by insights_data__sentences.createTimeNanos asc) AS turn_number
-          FROM insights_demo.insights_export AS insights_data
+          FROM @{insights_table} AS insights_data
           LEFT JOIN UNNEST(insights_data.sentences) as insights_data__sentences
           GROUP BY
           1,
@@ -1527,6 +1607,55 @@ view: sentence_turn_number {
   }
 }
 
+view: insights_data__agents {
+  drill_fields: [agent_id]
+
+  dimension: agent_id {
+    primary_key: yes
+    type: string
+    description: "A user-specified string representing the agent."
+    sql: agentId ;;
+    link: {
+    label: "Agent Performance Dashboard"
+    url: "/dashboards-next/insights::agent_performance?Agent+ID+Selector={{ value }}"
+    }
+    suggest_dimension: agent_id
+    suggest_explore: insights_data__agent_id_filter
+  }
+
+  dimension: agent_display_name {
+    type: string
+    description: "The agent's name"
+    sql: agentDisplayName ;;
+  }
+
+  dimension: agent_team {
+    type: string
+    description: "A user-specified string representing the agent's team."
+    sql: agentTeam ;;
+  }
+
+  dimension: insights_data__agents {
+    type: string
+    description: "Metadata about the agent dimension."
+    hidden: yes
+    sql: insights_data__agents ;;
+  }
+}
+
+view: insights_data__agent_id_filter {
+  derived_table: {
+    sql: SELECT
+          insights_data__agents.agentid  AS agent_id
+          FROM @{insights_table}  AS insights_data
+          LEFT JOIN UNNEST(insights_data.agents) as insights_data__agents
+          GROUP BY
+              1 ;;
+  }
+
+  dimension: agent_id {}
+}
+
 # view: human_agent_turns {
 #   derived_table: {
 #     sql: WITH sentence_turn_number AS (SELECT
@@ -1534,7 +1663,7 @@ view: sentence_turn_number {
 #           insights_data__sentences.sentence  AS sentence,
 #           insights_data__sentences.createTimeNanos AS created_test,
 #           rank() over(partition by insights_data.conversationName order by insights_data__sentences.createTimeNanos asc) AS turn_number
-#           FROM insights_demo.insights_export AS insights_data
+#           FROM @{insights_table} AS insights_data
 #           LEFT JOIN UNNEST(insights_data.sentences) as insights_data__sentences
 #           GROUP BY
 #           1,
@@ -1543,7 +1672,7 @@ view: sentence_turn_number {
 #       SELECT
 #           insights_data.conversationName  AS conversation_name,
 #           min(sentence_turn_number.turn_number) AS first_turn_human_agent
-#       FROM insights_demo.insights_export AS insights_data
+#       FROM @{insights_table} AS insights_data
 #       LEFT JOIN UNNEST(insights_data.sentences) as insights_data__sentences
 #       LEFT JOIN sentence_turn_number ON insights_data.conversationName=sentence_turn_number.conversation_name
 #           and insights_data__sentences.sentence = sentence_turn_number.sentence
@@ -1653,4 +1782,207 @@ view: daily_facts {
     sql: ${topic_count} ;;
   }
 
+}
+
+view: insights_data__latest_summary__metadata {
+  dimension: key {
+    group_label: "Metadata"
+    type: string
+    description: "The key of the metadata."
+    sql: ${TABLE}.key ;;
+  }
+
+  dimension: value {
+    group_label: "Metadata"
+    type: string
+    description: "The value of the metadata."
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: insights_data__latest_summary__text_sections {
+  dimension: key {
+    group_label: "Text Sections"
+    type: string
+    description: "The name of the section."
+    sql: ${TABLE}.key ;;
+  }
+
+  dimension: value {
+    group_label: "Text Sections"
+    type: string
+    description: "The content of the section."
+    sql: ${TABLE}.value ;;
+  }
+}
+
+view: insights_data__qa_scorecard_results {
+  dimension: insights_data__qa_scorecard_results {
+    group_label: "Results"
+    type: string
+    description: "All QaScorecardResult(s) available for the conversation."
+    hidden: yes
+    sql: insights_data__qa_scorecard_results ;;
+  }
+
+  dimension: normalized_score {
+    group_label: "Results"
+    type: number
+    description: "Normalized score assigned for the conversation."
+    sql: normalizedScore ;;
+  }
+
+  dimension: potential_score {
+    group_label: "Results"
+    type: number
+    description: "The potential score assigned to the conversation."
+    sql: potentialScore ;;
+  }
+
+  dimension: qa_answers {
+    hidden: yes
+    sql: qaAnswers ;;
+  }
+
+  dimension: qa_answers__tags {
+    hidden: yes
+    sql: ${TABLE}.qaAnswers.tags ;;
+    group_label: "Qa Answers"
+    group_item_label: "Tags"
+  }
+
+  dimension: qa_scorecard {
+    group_label: "Results"
+    type: string
+    description: "Fully qualified resource name of the scorecard. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard_id}"
+    sql: qaScorecard ;;
+  }
+
+  dimension: qa_scorecard_result {
+    group_label: "Results"
+    type: string
+    description: "Fully qualified resource name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard_id}/revisions/{revision_id}/results/{result_id}"
+    sql: qaScorecardResult ;;
+  }
+
+  dimension: qa_scorecard_revision {
+    group_label: "Results"
+    type: string
+    description: "Fully qualified resource name of the scorecard revision. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard_id}/revisions/{revision_id}"
+    sql: qaScorecardRevision ;;
+  }
+
+  dimension: qa_tag_results {
+    hidden: yes
+    sql: qaTagResults ;;
+  }
+
+  dimension: score {
+    group_label: "Results"
+    type: number
+    description: "The score assigned to the conversation."
+    sql: score ;;
+  }
+}
+
+view: insights_data__qa_scorecard_results__qa_answers__tags {
+  dimension: insights_data__qa_scorecard_results__qa_answers__tags {
+    group_label: "Tags"
+    type: string
+    description: "User defined list of arbitrary tags."
+    sql: insights_data__qa_scorecard_results__qa_answers__tags ;;
+  }
+}
+
+view: insights_data__qa_scorecard_results__qa_answers {
+  dimension: normalized_score {
+    group_label: "QA Answers"
+    type: number
+    description: "The normalized score assigned to the answer."
+    sql: ${TABLE}.normalizedScore ;;
+  }
+
+  dimension: potential_score {
+    group_label: "QA Answers"
+    type: number
+    description: "The potential score assigned to the answer."
+    sql: ${TABLE}.potentialScore ;;
+  }
+
+  dimension: qa_answer_bool_value {
+    group_label: "QA Answers"
+    type: yesno
+    sql: ${TABLE}.qaAnswerBoolValue ;;
+  }
+
+  dimension: qa_answer_na_value {
+    group_label: "QA Answers"
+    type: yesno
+    sql: ${TABLE}.qaAnswerNaValue ;;
+  }
+
+  dimension: qa_answer_numeric_value {
+    group_label: "QA Answers"
+    type: number
+    sql: ${TABLE}.qaAnswerNumericValue ;;
+  }
+
+  dimension: qa_answer_string_value {
+    group_label: "QA Answers"
+    type: string
+    sql: ${TABLE}.qaAnswerStringValue ;;
+  }
+
+  dimension: qa_question__qa_question {
+    type: string
+    description: "Resource name of the question. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard_id}/revisions/{revision_id}/qaQuestions/{qa_question_id}"
+    sql: ${TABLE}.qaQuestion.qaQuestion ;;
+    group_label: "Qa Question"
+    group_item_label: "Qa Question"
+  }
+
+  dimension: qa_question__question_body {
+    type: string
+    description: "Question text. E.g., \"Did the agent greet the customer?\""
+    sql: ${TABLE}.qaQuestion.questionBody ;;
+    group_label: "Qa Question"
+    group_item_label: "Question Body"
+  }
+
+  dimension: score {
+    group_label: "QA Answers"
+    type: number
+    description: "The score assigned to the answer."
+    sql: ${TABLE}.score ;;
+  }
+}
+
+view: insights_data__qa_scorecard_results__qa_tag_results {
+  dimension: normalized_score {
+    group_label: "Tag Results"
+    type: number
+    description: "Normalized score for the given tag for this conversation."
+    sql: ${TABLE}.normalizedScore ;;
+  }
+
+  dimension: potential_score {
+    group_label: "Tag Results"
+    type: number
+    description: "The potential score assigned to the tag for this conversation."
+    sql: ${TABLE}.potentialScore ;;
+  }
+
+  dimension: score {
+    group_label: "Tag Results"
+    type: number
+    description: "The score assigned to the tag for this conversation."
+    sql: ${TABLE}.score ;;
+  }
+
+  dimension: tag {
+    group_label: "Tag Results"
+    type: string
+    description: "The tag assigned to question(s) in the scorecard."
+    sql: ${TABLE}.tag ;;
+  }
 }

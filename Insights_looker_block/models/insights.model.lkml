@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-connection: "whisper-test"
+connection: "@{db_connection_name}"
 
 # include all the views
 include: "/views/**/*.view"

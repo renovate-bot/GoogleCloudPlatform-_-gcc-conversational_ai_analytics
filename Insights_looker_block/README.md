@@ -11,9 +11,11 @@ This CCAI Insights Looker Block uses the BQ export to provide a more holistic vi
 
 ## Instructions
 
-1. Copy each of the folders and files into a new LookML Project
-2. Replace the model file connection string with your db connection
-3. Find and replace all instances of "insights_demo.insights_export" with your Insight's export "dataset.table"
+1. Copy each of files from the dashboards, models and views folders into a new LookML Project
+2. Copy the manifest.lkml file into the LookML project
+3. Update the db_connection_name constant in the manifest file with your db connection name
+4. Update the insights_table constant in the manifest file with your Insight export's dataset.table name
 
 ## Documentation
 [BQ Schema](https://cloud.google.com/contact-center/insights/docs/bigquery-all-schemas)
+*Note: This Looker block is compatible with BQ Schema v4 and higher

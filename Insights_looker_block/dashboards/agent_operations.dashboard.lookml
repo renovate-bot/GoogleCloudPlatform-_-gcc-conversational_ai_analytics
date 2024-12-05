@@ -644,7 +644,7 @@
     type: looker_grid
     fields: [insights_data.average_duration_minutes, insights_data.average_hold_minutes,
       insights_data.conversation_count, insights_data.average_client_sentiment_score,
-      insights_data.good_sentiment_ratio, insights_data.agent_id]
+      insights_data.good_sentiment_ratio, insights_data__agents.agent_id]
     filters: {}
     sorts: [insights_data.average_duration_minutes desc]
     limit: 500
@@ -865,14 +865,13 @@
   - name: Medium
     title: Medium
     type: field_filter
-    default_value: '"PHONE_CALL"'
+    default_value: ''
     allow_multiple_values: true
     required: false
     ui_config:
       type: button_group
       display: inline
       options:
-      - PHONE_CALL
     model: insights
     explore: insights_data
     listens_to_filters: []

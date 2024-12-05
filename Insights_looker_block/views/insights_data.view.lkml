@@ -13,7 +13,7 @@
 #    limitations under the License.
 
 view: insights_data {
-  sql_table_name: insights_demo.insights_export;;
+  sql_table_name: @{insights_table};;
   view_label: "1: Conversations"
 
   dimension: agent_id {

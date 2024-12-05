@@ -602,7 +602,7 @@
     model: insights
     explore: insights_data
     type: looker_grid
-    fields: [insights_data.average_conversation_minutes, insights_data.agent_id, insights_data.conversation_count]
+    fields: [insights_data.average_conversation_minutes, insights_data__agents.agent_id, insights_data.conversation_count]
     sorts: [insights_data.average_conversation_minutes desc]
     limit: 25
     column_limit: 50
@@ -689,7 +689,7 @@
     model: insights
     explore: insights_data
     type: looker_grid
-    fields: [insights_data.agent_id, insights_data.average_client_sentiment_category_value,
+    fields: [insights_data__agents.agent_id, insights_data.average_client_sentiment_category_value,
       insights_data.conversation_count]
     sorts: [insights_data.average_client_sentiment_category_value]
     limit: 25

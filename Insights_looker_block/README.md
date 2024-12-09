@@ -19,3 +19,7 @@ This CCAI Insights Looker Block uses the BQ export to provide a more holistic vi
 ## Documentation
 [BQ Schema](https://cloud.google.com/contact-center/insights/docs/bigquery-all-schemas)
 *Note: This Looker block is compatible with BQ Schema v4 and higher
+
+## Troubleshooting
+Common LookML Error: "Ensure the database connection is working and the modeled syntax is appropriate to the connections SQL dialect. Query execution failed: - Name agents not found insight insights_data at [13:32]"
+The Insights BQ export schema is still on v3 whereas the field "agents" is a nested field in v4+ schemas. You may need to request to allowlist your instance to a later version and recreate the BQ export.

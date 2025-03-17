@@ -76,3 +76,11 @@ variable "function_name" {
   type = string
   description = "Cloud Function name"
 }
+
+variable "insights_endpoint" {
+  type = string
+}
+
+variable "insights_api_version" {
+  type = string
+}

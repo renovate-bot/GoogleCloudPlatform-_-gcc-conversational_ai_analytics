@@ -435,57 +435,26 @@ module "cf_export_to_bq_bundle_bucket" {
 }
 
 module "cf_export_to_bq" {
-  source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"
-  project_id  = var.ccai_insights_project_id
-  region      = var.ccai_insights_location_id
-  name        = var.export_to_bq_function_name
-  bucket_name = module.cf_export_to_bq_bundle_bucket.name
-  bundle_config = {
+  source = "../export-to-bq-incremental"
 
-    source_dir = "${path.module}/cf-export-to-bq-incremental"
-    output_path = "${path.module}/cf-export-to-bq-incremental/bundle.zip"
-    excludes     = ["__pycache__"]
-  }
-  service_account = data.google_service_account.ccai_insights_sa_2.email
+  project_id                = var.ccai_insights_project_id
+  region                    = var.ccai_insights_location_id
+  function_name             = var.export_to_bq_function_name
+  cf_bucket_name            = module.cf_export_to_bq_bundle_bucket.name
+  service_account_email     = data.google_service_account.ccai_insights_sa_2.email
+  ccai_insights_project_id = var.ccai_insights_project_id
+  ccai_insights_location_id = var.ccai_insights_location_id
+  bigquery_project_id       = var.ccai_insights_project_id
+  bigquery_staging_dataset  = var.bigquery_staging_dataset
+  bigquery_staging_table   = var.bigquery_staging_table
+  bigquery_final_dataset    = var.bigquery_final_dataset
+  bigquery_final_table      = var.bigquery_final_table
+  export_to_bq_cron         = var.export_to_bq_cron
+  insights_api_version = var.insights_api_version
+  insights_endpoint = var.insights_endpoint
 
-  function_config = {
-    timeout_seconds = local.timeout_seconds
-    memory_mb = 8192
-    cpu = "2"
-  }
-
-  environment_variables = {
-    CCAI_INSIGHTS_PROJECT_ID = var.ccai_insights_project_id
-    CCAI_INSIGHTS_LOCATION_ID = var.ccai_insights_location_id
-    BIGQUERY_PROJECT_ID = var.ccai_insights_project_id
-    BIGQUERY_STAGING_DATASET = var.bigquery_staging_dataset
-    BIGQUERY_STAGING_TABLE = var.bigquery_staging_table
-    BIGQUERY_FINAL_DATASET = var.bigquery_final_dataset
-    BIGQUERY_FINAL_TABLE = var.bigquery_final_table
-    INSIGHTS_ENDPOINT = var.insights_endpoint
-    INSIGHTS_API_VERSION = var.insights_api_version
-  }
 }
 
-resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
-  name     = "${var.export_to_bq_function_name}-scheduler"
-  project = var.ccai_insights_project_id
-  region = var.ccai_insights_location_id
-  schedule = var.export_to_bq_cron
-  description = "Schedule to export CCAI Insights conversations to BigQuery"
-  attempt_deadline = "${local.scheduler_timeout}s" #30 minutes
-  retry_config {
-      retry_count = 3
-  }
-  http_target {
-    uri         = module.cf_export_to_bq.uri
-    http_method = "POST"
-    oidc_token {
-        audience              = "${module.cf_export_to_bq.uri}/"
-        service_account_email = data.google_service_account.ccai_insights_sa_2.email
-    }
-  }
-}
 
 module "cf_feedback_generator" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"

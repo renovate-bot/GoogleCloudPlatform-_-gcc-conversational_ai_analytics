@@ -153,9 +153,6 @@ Each log contains metadata about the file that failed to process. Each Cloud Fun
 - **cf_insights_uploader_logger**: Conversation Upload API call
 - **cf_feedback_generator_logger**: Gemini call for feedback generation
 
-## Snowflake integration
-Any integration can be done by using the [`cf-export-to-bq-incremental`](modules/ingest-pipeline/cf-export-to-bq-incremental/lib.py) through the `export_staging_table_to_pandas_df` function. This can be then used in the Snowflake staging table. For nested columns, such as record or repeated fields, pandas.DataFrame will have them as `ARRAY[OBJECTS]` which is supported by Snowflake.  
-
 ## Data Loss Prevention
 Terraform includes the DLP templates creation but if they will not be used it is not necessary to run [update-settings.sh](utils/update-settings.sh)
 

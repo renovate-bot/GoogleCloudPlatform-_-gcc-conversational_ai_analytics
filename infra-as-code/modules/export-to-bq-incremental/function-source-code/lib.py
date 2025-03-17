@@ -19,10 +19,39 @@ import google.oauth2.credentials
 import google.auth.transport.requests
 import time
 import datetime
+import pandas as pd
+import db_dtypes
 
 from google.cloud import bigquery
 
 class InsightsHelper:
+    """
+    A helper class for interacting with Contact Center AI Insights and BigQuery.
+
+    This class provides methods for:
+        - Retrieving an OAuth token for authentication.
+        - Getting the status of an operation.
+        - Submitting an export request to BigQuery.
+        - Executing a merge query in BigQuery.
+        - Exporting a BigQuery staging table to a Pandas DataFrame.
+        - Getting the latest update timestamp from BigQuery.
+        - Getting the conversation count from BigQuery and CCAI Insights.
+
+    Attributes:
+        ccai_insights_project_id (str): The project ID for CCAI Insights.
+        ccai_insights_location_id (str): The location ID for CCAI Insights.
+        bigquery_project_id (str): The project ID for BigQuery.
+        bigquery_staging_dataset (str): The dataset for the staging table in BigQuery.
+        bigquery_staging_table (str): The name of the staging table in BigQuery.
+        bigquery_final_dataset (str): The dataset for the final table in BigQuery.
+        bigquery_final_table (str): The name of the final table in BigQuery.
+        insights_endpoint (str): The endpoint for the CCAI Insights API.
+        insights_api_version (str): The version of the CCAI Insights API.
+        bq_client (google.cloud.bigquery.Client): The BigQuery client object.
+        staging_table_id (str): The fully qualified ID of the staging table in BigQuery.
+        final_table_id (str): The fully qualified ID of the final table in BigQuery.
+        insights_url_with_location (str): The base URL for the CCAI Insights API with the location included.
+    """
     ccai_insights_project_id: str
     ccai_insights_location_id: str
     bigquery_project_id: str
@@ -65,16 +94,29 @@ class InsightsHelper:
 
 
     def get_token(self):
+        """
+        Retrieves an OAuth token for authentication.
+
+        Returns:
+            str: The OAuth token.
+        """
         creds, _ = google.auth.default(
             scopes=['https://www.googleapis.com/auth/cloud-platform'])
         auth_req = google.auth.transport.requests.Request()
         creds.refresh(auth_req)
 
-        # print(f"identity: {creds.service_account_email}")
-
         return creds.token
 
     def get_operation(self,operation_name):
+        """
+        Gets the status of an operation.
+
+        Args:
+            operation_name (str): The name of the operation.
+
+        Returns:
+            dict: The operation details.
+        """
         headers = {
             'charset': 'utf-8',
             'Content-type': 'application/json',
@@ -89,6 +131,15 @@ class InsightsHelper:
         return response.json()
     
     def submit_export_request(self, filter):
+        """
+        Submits an export request to BigQuery.
+
+        Args:
+            filter (str): The filter to apply to the export request.
+
+        Returns:
+            dict: The response from the export request.
+        """
         headers = {
             'charset': 'utf-8',
             'Content-type': 'application/json',
@@ -118,6 +169,9 @@ class InsightsHelper:
         return response_json
     
     def execute_merge_query(self):
+        """
+        Executes a merge query in BigQuery to update or insert data from the staging table to the final table.
+        """
         merge_query = f'''
             MERGE `{self.final_table_id}` T 
                 USING (
@@ -264,4 +318,3 @@ class InsightsHelper:
         print(f'Insights conversationCount: `{conversationCount}`')
         
         return response.json()['conversationCount']
-

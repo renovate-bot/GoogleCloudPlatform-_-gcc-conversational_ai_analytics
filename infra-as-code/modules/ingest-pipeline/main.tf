@@ -422,40 +422,6 @@ module "cf_genai_transcript_fix" {
   }
 }
 
-resource "random_id" "export_to_bq_bundle_ext" {
-  byte_length = 4
-}
-
-module "cf_export_to_bq_bundle_bucket" {
-  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
-  project_id = var.ccai_insights_project_id
-  name       = "cf-bucket-${random_id.export_to_bq_bundle_ext.id}"
-  location   = "US"
-  versioning = true
-}
-
-module "cf_export_to_bq" {
-  source = "../export-to-bq-incremental"
-
-  project_id                = var.ccai_insights_project_id
-  region                    = var.ccai_insights_location_id
-  function_name             = var.export_to_bq_function_name
-  cf_bucket_name            = module.cf_export_to_bq_bundle_bucket.name
-  service_account_email     = data.google_service_account.ccai_insights_sa_2.email
-  ccai_insights_project_id = var.ccai_insights_project_id
-  ccai_insights_location_id = var.ccai_insights_location_id
-  bigquery_project_id       = var.ccai_insights_project_id
-  bigquery_staging_dataset  = var.bigquery_staging_dataset
-  bigquery_staging_table   = var.bigquery_staging_table
-  bigquery_final_dataset    = var.bigquery_final_dataset
-  bigquery_final_table      = var.bigquery_final_table
-  export_to_bq_cron         = var.export_to_bq_cron
-  insights_api_version = var.insights_api_version
-  insights_endpoint = var.insights_endpoint
-
-}
-
-
 module "cf_feedback_generator" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"
   project_id  = var.project_id

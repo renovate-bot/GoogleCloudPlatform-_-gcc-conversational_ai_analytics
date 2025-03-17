@@ -181,3 +181,39 @@ resource "google_bigquery_connection" "biglake_connection" {
     location = "US"
     cloud_resource {}
 }
+
+resource "random_id" "export_to_bq_bundle_ext" {
+  byte_length = 4
+}
+
+# This bucket will be used for storing the Cloud Functions bundle (.zip file with source code)
+module "cf_bundle_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name       = "cf-bucket-${random_id.export_to_bq_bundle_ext.id}"
+  location   = "US"
+}
+
+# Implement the Terraform module that schedules the BQ export using incremental loads
+module "ccai_insights_to_bq_incremental" {
+  source  = "../../modules/export-to-bq-incremental"
+  project_id = var.project_id
+  region = var.region
+
+  function_name = "export-to-bq-incremental"
+  cf_bucket_name = module.cf_bundle_bucket.name
+  
+  ccai_insights_location_id = var.region
+  ccai_insights_project_id = var.project_id
+  bigquery_project_id = var.project_id
+  bigquery_staging_dataset = "ccai_insights_export"
+  bigquery_staging_table = "export_staging"
+  bigquery_final_dataset = "ccai_insights_export"
+  bigquery_final_table = "export"
+  export_to_bq_cron   = "0 * * * *"
+  service_account_email = module.ccai_insights_sa.email
+  insights_endpoint = "contactcenterinsights.googleapis.com"
+  insights_api_version = "v1"
+
+  depends_on = [ module.ccai_insights_sa ]
+}

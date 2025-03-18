@@ -16,6 +16,10 @@ variable "project_id" {
   type = string
 }
 
+variable "env" {
+  type = string
+}
+
 variable "ccai_insights_project_id" {
   type = string
 }
@@ -36,14 +40,6 @@ variable "service_account_id_2" {
   type = string
 }
 
-variable "bucket_name" {
-  type = string
-}
-
-variable "redacted_audios_bucket_name" {
-  type = string
-}
-
 variable "insights_endpoint" {
   type = string
 }
@@ -58,10 +54,6 @@ variable "ccai_insights_location_id" {
 }
 
 variable "pipeline_name" {
-  type = string
-}
-
-variable "transcript_bucket_id" {
   type = string
 }
 
@@ -123,11 +115,6 @@ variable "export_to_bq_cron" {
   description = "CRON expression that defines how often the CCAI Insights data will be exported"
 }
 
-variable "ingest_record_bucket_id" {
-  type = string
-  description = "Name of the bucket where parquet file to keep track of processed and failed files"
-}
-
 variable "feedback_generator_function_name" {
   type = string
   description = "Cloud Function name"
@@ -174,3 +161,12 @@ variable "few_shot_examples" {
   type = string
   description = "Few examples of correct transcripts for the GenAI prompt"
 } 
+
+variable "hash_secret_name" {
+  type = string
+  description = "Name or ID of the secret for the hashing key"
+}
+
+variable "hash_key" {
+  type = string
+}

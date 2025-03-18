@@ -108,18 +108,6 @@ variable "export_to_bq_function_name" {
   default = "export-to-bq-incremental"
 }
 
-variable "audio_format_change_function_name" {
-  type = string
-  description = "Name of the audio format change function"
-  default = "audio-format-change"
-}
-
-variable "redacted_audios_bucket_name" {
-  type = string
-  description = "Bucket to store redacted audio files"
-  default = "redacted-audio-files"
-}
-
 variable "target_tags" {
   type = string
   description = "Comma-separated list of target tags"

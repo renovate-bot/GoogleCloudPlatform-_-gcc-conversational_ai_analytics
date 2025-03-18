@@ -14,12 +14,6 @@ locals {
   scheduler_timeout = 1800
 }
 
-resource "random_string" "random" {
-    length  = 5
-    special = false
-    lower   = true
-}
-
 data "local_file" "orchestration" {
   filename = "${path.module}/workflow/orchestration.yaml"
 }
@@ -45,7 +39,7 @@ resource "google_eventarc_trigger" "primary" {
 
     matching_criteria {
         attribute = "bucket"
-        value = var.bucket_name
+        value = module.formatted_bucket.name
     }
 
     destination {
@@ -73,10 +67,16 @@ resource "google_workflows_workflow" "orchestration" {
     depends_on = [ module.cf_conversation_upload ]
 }
 
+resource "random_string" "random" {
+    length  = 5
+    special = false
+    lower   = true
+}
+
 module "cf_bundle_bucket" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
   project_id = var.project_id
-  name       = "cf-bucket-${random_string.random.result}"
+  name       = "cf-ccai-conversation-upload-bucket-${random_string.random.result}"
   location   = "US"
   versioning = true
 }
@@ -106,8 +106,8 @@ module "cf_conversation_upload" {
     INSIGHTS_API_VERSION = var.insights_api_version
     CCAI_INSIGHTS_PROJECT_ID = var.ccai_insights_project_id
     CCAI_INSIGHTS_LOCATION_ID = var.ccai_insights_location_id
-    INGEST_RECORD_BUCKET_ID = var.ingest_record_bucket_id
-    REDACTED_AUDIOS_BUCKET_NAME = var.redacted_audios_bucket_name
+    INGEST_RECORD_BUCKET_ID = module.ingest_record_bucket.name
+    REDACTED_AUDIOS_BUCKET_NAME = module.redacted_audio_bucket.name
   }
 }
 
@@ -344,7 +344,7 @@ resource "random_id" "bucket_ext" {
 module "cf_stt_bundle_bucket" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
   project_id = var.project_id
-  name       = "cf-bucket-${random_id.bucket_ext.id}"
+  name       = "cf-stt-bucket-${random_id.bucket_ext.id}"
   location   = "US"
   versioning = true
 }
@@ -371,9 +371,9 @@ module "cf_stt_transcript" {
 
   environment_variables = {
     PROJECT_ID = var.project_id
-    TRANSCRIPT_BUCKET_ID = var.transcript_bucket_id
+    TRANSCRIPT_BUCKET_ID = module.transcript_bucket.name
     RECOGNIZER_PATH = var.recognizer_path
-    INGEST_RECORD_BUCKET_ID = var.ingest_record_bucket_id
+    INGEST_RECORD_BUCKET_ID = module.ingest_record_bucket.name
   }
 }
 
@@ -385,7 +385,7 @@ resource "random_id" "genai_bucket_ext" {
 module "cf_genai_bundle_bucket" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
   project_id = var.project_id
-  name       = "cf-bucket-${random_id.genai_bucket_ext.id}"
+  name       = "cf-genai-bucket-${random_id.genai_bucket_ext.id}"
   location   = "US"
   versioning = true
 }
@@ -415,11 +415,19 @@ module "cf_genai_transcript_fix" {
     PROJECT_ID = var.project_id
     LOCATION_ID = var.region
     MODEL_NAME = var.model_name
-    INGEST_RECORD_BUCKET_ID = var.ingest_record_bucket_id
+    INGEST_RECORD_BUCKET_ID = module.ingest_record_bucket.name
     CLIENT_SPECIFIC_CONSTRAINTS = var.client_specific_constraints
     CLIENT_SPECIFIC_CONTEXT = var.client_specific_context
     FEW_SHOT_EXAMPLES = var.few_shot_examples
   }
+}
+
+module "cf_feedback_generator_bundle_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name       = "cf-feedback-generator-bucket-${random_id.bucket_ext.id}"
+  location   = "US"
+  versioning = true
 }
 
 module "cf_feedback_generator" {
@@ -427,7 +435,7 @@ module "cf_feedback_generator" {
   project_id  = var.project_id
   region      = var.region
   name        = var.feedback_generator_function_name
-  bucket_name = module.cf_bundle_bucket.name
+  bucket_name = module.cf_feedback_generator_bundle_bucket.name
   bundle_config = {
     source_dir  = "${path.module}/cf-feedback-generator"
     output_path = "${path.module}/cf-feedback-generator/bundle.zip"
@@ -451,7 +459,7 @@ module "cf_feedback_generator" {
     DATASET_NAME = var.dataset_name,
     FEEDBACK_TABLE_NAME = var.feedback_table_name,
     SCORECARD_ID = var.scorecard_id
-    INGEST_RECORD_BUCKET_ID = var.ingest_record_bucket_id
+    INGEST_RECORD_BUCKET_ID = module.ingest_record_bucket.name
     TARGET_TAGS = var.target_tags
     TARGET_VALUES = var.target_values
   }
@@ -472,7 +480,7 @@ resource "random_id" "audio_redaction_bucket_ext" {
 module "cf_audio_redaction_bundle_bucket" {
   source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
   project_id = var.project_id
-  name       = "cf-bucket-${random_id.audio_redaction_bucket_ext.id}"
+  name       = "cf-audio-redaction-bucket-${random_id.audio_redaction_bucket_ext.id}"
   location   = "US"
   versioning = true
 }
@@ -499,7 +507,103 @@ module "cf_audio_redaction" {
 
   environment_variables = {
     PROJECT_ID = var.project_id
-    TRANSCRIPT_BUCKET_ID = var.transcript_bucket_id
-    REDACTED_AUDIOS_BUCKET_NAME = var.redacted_audios_bucket_name
+    TRANSCRIPT_BUCKET_ID = module.transcript_bucket.name
+    REDACTED_AUDIOS_BUCKET_NAME = module.redacted_audio_bucket.name
   }
+}
+
+#Bucket for the output of the STT Transcript in json format
+module "transcript_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "stt-transcript-${random_id.bucket_ext.id}-${var.env}"
+  location = "US"
+  versioning = true
+}
+
+# Buckets for the audio formatting cloud function
+module "trigger_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "original-audio-files-${random_id.bucket_ext.id}-${var.env}"
+  location = var.region # The trigger must be in the same location as the bucket
+  storage_class = "REGIONAL"
+  versioning = true
+}
+
+module "formatted_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "formatted-audio-files-${random_id.bucket_ext.id}-${var.env}"
+  location = var.region 
+  storage_class = "REGIONAL"
+  versioning = true
+}
+
+module "meta_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "formatted-audio-metadata-${random_id.bucket_ext.id}-${var.env}"
+  location = var.region 
+  storage_class = "REGIONAL"
+  versioning = true
+}
+
+module "redacted_audio_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "redacted-audio-files"
+  location = var.region 
+  storage_class = "REGIONAL"
+  versioning = true
+}
+
+# Secret manager
+module "secret_manager_hash_key" {
+  source  = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/secret-manager?ref=v31.1.0&depth=1"
+  project_id = var.project_id 
+
+  secrets = {
+    (var.hash_secret_name) = {
+      locations = null
+      keys      = null
+    }
+  }
+
+  versions = {
+    (var.hash_secret_name) = {
+      "latest" = {
+        enabled = true
+        data    = var.hash_key
+      }
+    }
+  }
+
+}
+
+module "audio_data_format_change" {
+  source = "../../modules/audio-data-format-change"
+  project_id = var.project_id
+  region = var.region
+  env = var.env
+  service_account_email = data.google_service_account.ccai_insights_sa.email
+
+  function_name = "audio-format-change"
+
+  formatted_audio_bucket_id = module.formatted_bucket.name
+  metadata_bucket_id = module.meta_bucket.name
+  ingest_record_bucket_id = module.ingest_record_bucket.name
+  number_of_channels = 2
+  hash_key = var.hash_secret_name
+
+  trigger_bucket_name = module.trigger_bucket.name
+}
+
+module "ingest_record_bucket" {
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/gcs?ref=v31.1.0&depth=1"
+  project_id = var.project_id
+  name     = "ingest-record-bucket-${random_id.bucket_ext.id}-${var.env}"
+  location = var.region 
+  storage_class = "REGIONAL"
+  versioning = true
 }

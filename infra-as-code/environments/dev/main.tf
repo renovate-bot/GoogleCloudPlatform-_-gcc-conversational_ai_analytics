@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "random_id" "bucket_ext" {
-  byte_length = 4
-}
-
 provider "google" {
   project = "${var.project_id}"
 }
@@ -48,8 +44,6 @@ module "ccai_insights_ingest_pipeline" {
   scorecard_id = var.scorecard_id
   target_tags = var.target_tags
   target_values = var.target_values
-
-  export_to_bq_function_name = var.export_to_bq_function_name
 
   hash_secret_name = var.hash_secret_name
   hash_key = var.hash_key

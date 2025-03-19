@@ -102,12 +102,6 @@ variable "feedback_generator_function_name" {
   default = "feedback-generator"
 }
 
-variable "export_to_bq_function_name" {
-  type = string
-  description = "Name of the export to BigQuery function"
-  default = "export-to-bq-incremental"
-}
-
 variable "target_tags" {
   type = string
   description = "Comma-separated list of target tags"

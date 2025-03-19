@@ -80,12 +80,6 @@ variable "audio_redaction_function_name" {
   description = "Cloud Function name"
 }
 
-variable "export_to_bq_function_name" {
-  type = string
-  default = "export-to-bq-incremental"
-  description = "Cloud Function name"
-}
-
 variable "bigquery_staging_dataset" {
   type = string
   default = "ccai_insights_export"

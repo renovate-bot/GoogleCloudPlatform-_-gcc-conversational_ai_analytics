@@ -48,12 +48,6 @@ module "ccai_insights_ingest_pipeline" {
   hash_secret_name = var.hash_secret_name
   hash_key = var.hash_key
 
-  bigquery_staging_dataset = "ccai_insights_export"
-  bigquery_staging_table = "export_staging"
-  bigquery_final_dataset = "ccai_insights_export"
-  bigquery_final_table = "export"
-  export_to_bq_cron   = "*/15 * * * *"
-
   client_specific_constraints = var.client_specific_constraints
   client_specific_context = var.client_specific_context
   few_shot_examples = var.few_shot_examples

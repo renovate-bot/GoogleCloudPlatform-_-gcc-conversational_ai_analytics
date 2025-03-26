@@ -80,35 +80,6 @@ variable "audio_redaction_function_name" {
   description = "Cloud Function name"
 }
 
-variable "bigquery_staging_dataset" {
-  type = string
-  default = "ccai_insights_export"
-  description = "BigQuery dataset in which we will be writing the Staging data"
-}
-
-variable "bigquery_final_dataset" {
-  type = string
-  default = "ccai_insights_export"
-  description = "BigQuery dataset in which we will be writing the data"
-}
-
-variable "bigquery_staging_table" {
-  type = string
-  default = "export_staging"
-  description = "BigQuery table in which we will be writing the Staging data"
-}
-
-variable "bigquery_final_table" {
-  type = string
-  default = "export"
-  description = "BigQuery table in which we will be writing the data"
-}
-
-variable "export_to_bq_cron" {
-  type = string
-  description = "CRON expression that defines how often the CCAI Insights data will be exported"
-}
-
 variable "feedback_generator_function_name" {
   type = string
   description = "Cloud Function name"

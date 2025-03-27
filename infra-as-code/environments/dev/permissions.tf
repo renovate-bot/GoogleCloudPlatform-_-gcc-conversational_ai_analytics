@@ -48,12 +48,6 @@ resource "google_project_iam_member" "gcp_ccai_service" {
   depends_on = [resource.google_project_service.gcp_services]
 }
 
-resource "google_project_iam_member" "connectionPermissionGrant" {
-    project = var.project_id
-    role = "roles/storage.objectViewer"
-    member = format("serviceAccount:%s", google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id)
-}
-
 # Terraform SA
 # Service account for project with PII information
 module "ccai_insights_sa" {
@@ -83,32 +77,6 @@ module "ccai_insights_sa" {
       "roles/aiplatform.admin",
       "roles/secretmanager.secretAccessor",
       "roles/serviceusage.serviceUsageAdmin"
-    ]
-  }
-}
-
-# Terraform SA
-module "ccai_insights_sa_2" {
-  count = var.project_id == var.ccai_insights_project_id ? 0 : 1
-  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/iam-service-account?ref=v31.1.0&depth=1"
-  project_id = var.ccai_insights_project_id
-  name       = "asset-ccai-cm-sa-2"
-
-  # non-authoritative roles granted *to* the service accounts on other resources
-  iam_project_roles = {
-    "${var.ccai_insights_project_id}" = [
-      "roles/contactcenterinsights.editor",
-      "roles/logging.logWriter",
-      "roles/storage.admin",
-      "roles/storage.objectAdmin",
-      "roles/iam.serviceAccountTokenCreator",
-      "roles/iam.serviceAccountUser",
-      "roles/cloudfunctions.developer",
-      "roles/run.invoker",
-      "roles/eventarc.eventReceiver",
-      "roles/bigquery.jobUser",
-      "roles/bigquery.dataViewer",
-      "roles/bigquery.dataEditor"
     ]
   }
 }

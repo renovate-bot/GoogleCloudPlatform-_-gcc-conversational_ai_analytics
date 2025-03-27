@@ -33,7 +33,6 @@ module "ccai_insights_ingest_pipeline" {
   ccai_insights_location_id = var.ccai_insights_location_id
   pipeline_name = var.pipeline_name
   service_account_id = module.ccai_insights_sa.id
-  service_account_id_2 = try(module.ccai_insights_sa_2.id, module.ccai_insights_sa.id) 
   recognizer_path = var.recognizer_path
   stt_function_name = var.stt_function_name
   model_name = var.model_name
@@ -53,17 +52,9 @@ module "ccai_insights_ingest_pipeline" {
   few_shot_examples = var.few_shot_examples
 
   depends_on = [ module.ccai_insights_sa, 
-                module.ccai_insights_sa_2,
                 resource.google_project_iam_member.gcp_artifact_registry_create,
                 resource.google_project_iam_member.gcs_object_admin,
                 google_project_service.gcp_services ]
-}
-
-resource "google_bigquery_connection" "biglake_connection" {
-    connection_id = var.bq_external_connection_name
-    project = var.project_id
-    location = "US"
-    cloud_resource {}
 }
 
 resource "random_id" "export_to_bq_bundle_ext" {

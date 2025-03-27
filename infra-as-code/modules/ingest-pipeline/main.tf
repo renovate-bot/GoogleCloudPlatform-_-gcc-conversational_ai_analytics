@@ -22,10 +22,6 @@ data "google_service_account" "ccai_insights_sa" {
   account_id = var.service_account_id
 }
 
-data "google_service_account" "ccai_insights_sa_2" {
-  account_id = var.service_account_id_2
-}
-
 resource "google_eventarc_trigger" "primary" {
     name = var.pipeline_name
     location = var.region

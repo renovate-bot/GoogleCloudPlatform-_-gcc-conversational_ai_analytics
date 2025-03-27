@@ -1,6 +1,6 @@
 # Ingest Pipeline
 
-This pipeline automates the process of ingesting audio data into Contact Center AI (CCAI) Insights and exporting the analyzed data to BigQuery. It leverages several Google Cloud services to achieve this.
+This pipeline automates the process of ingesting audio data into Contact Center AI (CCAI) Insights. It leverages several Google Cloud services to achieve this.
 
 ## Modules
 
@@ -22,11 +22,6 @@ This Cloud Function utilizes the FFmpeg library to redact sensitive information 
 ### 6. `cf-feedback-generator`
 Triggered after a conversation is uploaded into CCAI and analyzed, this Cloud Function identifies specific Quality Assurance (QA) questions that the agent needs feedback on based on their performance. Feedback for these questions is generated using the Vertex AI generative model. Finally, the feedback is exported to a BigQuery table.
 
-### 7. `export-to-bq-incremental`
-This Cloud Function is triggered every 15 minutes to perform the following:
-- Runs a SQL query on the main CCAI table (if the table doesn't exist, it performs a full load) to determine the latest analysis date.
-- Uses the latest analysis date to filter the time range for the CCAI Insights export service to BigQuery. (Note: The table needs to exist before running the export service.)
-- Triggers a merge statement on the conversation name and latest analysis date to update the main BigQuery table with the latest CCAI Insights data.
 
 ## Workflow
 
@@ -47,8 +42,6 @@ The `ingest-pipeline` module orchestrates the execution of these Cloud Functions
 7.  After CCAI analysis is complete, the `cf-feedback-generator` function is triggered.
    
 8.  `cf-feedback-generator` generates feedback on the conversation using another Gemini model and writes it to BigQuery.
-   
-9.  Meanwhile, the `export-to-bq-incremental` function runs every 15 minutes to export the latest CCAI Insights data to BigQuery.
 
 ## Error Handling
 

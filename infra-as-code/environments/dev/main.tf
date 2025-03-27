@@ -21,7 +21,14 @@ data "google_project" "project" {
 }
 
 # Optional module: Ingesting data into CCAI Insights
-module "ccai_insights_ingest_pipeline" {
+# This pipeline automates the ingestion of audio data into Google Cloud Contact Center AI (CCAI) Insights. 
+# It uses Cloud Functions orchestrated by Cloud Workflows to transcribe audio using Cloud Speech-to-Text, 
+# correct key terms in the transcripts using Vertex AI's Gemini model, redact sensitive information from audio using FFmpeg 
+# and from text using DLP, upload the corrected transcripts into CCAI for analysis
+# and generate agent feedback using Gemini based on CCAI analysis
+# The pipeline includes error handling and provides status updates at each step.
+
+module "custom_ccai_insights_ingest_pipeline" {
   source = "../../modules/ingest-pipeline"
   project_id = var.project_id
   env = var.env

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 terraform {
-  backend "gcs" {
-    bucket = "gsd-ccai-insights-offering-tfstate"
-    prefix = "env/dev"
-  }
+  required_version = "~> 1.9.8"
 }

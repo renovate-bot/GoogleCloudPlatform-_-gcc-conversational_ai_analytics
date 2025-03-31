@@ -41,6 +41,8 @@ module "cf_export_to_bq" {
     BIGQUERY_STAGING_TABLE = var.bigquery_staging_table
     BIGQUERY_FINAL_DATASET = var.bigquery_final_dataset
     BIGQUERY_FINAL_TABLE = var.bigquery_final_table
+    INSIGHTS_ENDPOINT = var.insights_endpoint
+    INSIGHTS_API_VERSION = var.insights_api_version
   }
 }
 

@@ -37,3 +37,11 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+.venv
+__pycache__
+.pytest_cache
+
+# Ignore specific shell scripts
+bidirectional_sync_readme.md
+bidirectional_sync.sh

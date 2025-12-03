@@ -94,8 +94,5 @@ module "ccai_insights_to_bq_incremental" {
   bigquery_final_table = "export"
   export_to_bq_cron   = "0 * * * *"
   service_account_email = module.ccai_insights_sa.email
-  insights_endpoint = "contactcenterinsights.googleapis.com"
-  insights_api_version = "v1"
-
   depends_on = [ module.ccai_insights_sa ]
 }

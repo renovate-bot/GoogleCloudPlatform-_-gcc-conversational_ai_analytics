@@ -1,0 +1,7 @@
+google-cloud-aiplatform
+google-cloud-dialogflow-cx
+google-cloud-logging
+Flask
+vertexai
+functions-framework
+

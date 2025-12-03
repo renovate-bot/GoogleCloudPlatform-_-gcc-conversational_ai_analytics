@@ -16,6 +16,15 @@ locals {
   timeout_seconds = 1800
 }
 
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+resource "google_pubsub_topic" "trigger_topic" {
+  name    = "${var.function_name}-trigger"
+  project = var.project_id
+}
+
 module "cf_export_to_bq" {
   source      = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/cloud-function-v2?ref=v31.1.0&depth=1"
   project_id  = var.project_id
@@ -30,37 +39,105 @@ module "cf_export_to_bq" {
 
   function_config = {
     max_instance_count = 1 #Only one export at the time should be running
-    timeout_seconds = local.timeout_seconds
   }
 
   environment_variables = {
-    CCAI_INSIGHTS_PROJECT_ID = var.ccai_insights_project_id
+    CCAI_INSIGHTS_PROJECT_ID  = var.ccai_insights_project_id
     CCAI_INSIGHTS_LOCATION_ID = var.ccai_insights_location_id
-    BIGQUERY_PROJECT_ID = var.bigquery_project_id
-    BIGQUERY_STAGING_DATASET = var.bigquery_staging_dataset
-    BIGQUERY_STAGING_TABLE = var.bigquery_staging_table
-    BIGQUERY_FINAL_DATASET = var.bigquery_final_dataset
-    BIGQUERY_FINAL_TABLE = var.bigquery_final_table
-    INSIGHTS_ENDPOINT = var.insights_endpoint
-    INSIGHTS_API_VERSION = var.insights_api_version
+    BIGQUERY_PROJECT_ID       = var.bigquery_project_id
+    BIGQUERY_STAGING_DATASET  = var.bigquery_staging_dataset
+    BIGQUERY_STAGING_TABLE    = var.bigquery_staging_table
+    BIGQUERY_FINAL_DATASET    = var.bigquery_final_dataset
+    BIGQUERY_FINAL_TABLE      = var.bigquery_final_table
+    BQ_EXPORT_SCHEMA_VERSION  = var.bq_export_schema_version
+  }
+
+  trigger_config = {
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic          = google_pubsub_topic.trigger_topic.id
+    service_account_email = var.service_account_email
   }
 }
 
 resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
-  name     = "${var.function_name}-scheduler"
-  region = var.region
-  schedule = var.export_to_bq_cron
-  description = "Schedule to export CCAI Insights conversations to BigQuery"
+  name             = "${var.function_name}-scheduler"
+  region           = var.region
+  schedule         = var.export_to_bq_cron
+  description      = "Schedule to export CCAI Insights conversations to BigQuery"
   attempt_deadline = "${local.timeout_seconds}s" #30 minutes
   retry_config {
     retry_count = 3
   }
-  http_target {
-    uri         = module.cf_export_to_bq.uri
-    http_method = "POST"
-    oidc_token {
-        audience              = "${module.cf_export_to_bq.uri}/"
-        service_account_email = var.service_account_email
+  
+  pubsub_target {
+    topic_name = google_pubsub_topic.trigger_topic.id
+    data       = base64encode("{\"trigger\": true}")
+  }
+}
+
+resource "google_pubsub_topic_iam_member" "scheduler_pubsub_publisher" {
+  project = google_pubsub_topic.trigger_topic.project
+  topic   = google_pubsub_topic.trigger_topic.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+}
+
+
+
+locals {
+  is_same_dataset = var.bigquery_staging_dataset == var.bigquery_final_dataset
+}
+
+module "unified_dataset" {
+  count      = local.is_same_dataset ? 1 : 0
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset?ref=v34.1.0&depth=1"
+  project_id = var.bigquery_project_id
+  id         = var.bigquery_staging_dataset
+  location   = var.bq_dataset_region
+  tables = {
+    (var.bigquery_staging_table) = {
+      schema              = file("${path.module}/schemas/ccai_insights_export_schema.json")
+      deletion_protection = false
+    },
+    (var.bigquery_final_table) = {
+      schema              = file("${path.module}/schemas/ccai_insights_export_schema.json")
+      deletion_protection = false
+      partitioning = {
+        type  = "DAY"
+        field = "startTimestamp"
+      }
+    }
+  }
+}
+
+module "staging_dataset" {
+  count      = local.is_same_dataset ? 0 : 1
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset?ref=v34.1.0&depth=1"
+  project_id = var.bigquery_project_id
+  id         = var.bigquery_staging_dataset
+  location   = var.bq_dataset_region
+  tables = {
+    (var.bigquery_staging_table) = {
+      schema              = file("${path.module}/schemas/ccai_insights_export_schema.json")
+      deletion_protection = false
+    }
+  }
+}
+
+module "final_dataset" {
+  count      = local.is_same_dataset ? 0 : 1
+  source     = "github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/bigquery-dataset?ref=v34.1.0&depth=1"
+  project_id = var.bigquery_project_id
+  id         = var.bigquery_final_dataset
+  location   = var.bq_dataset_region
+  tables = {
+    (var.bigquery_final_table) = {
+      schema              = file("${path.module}/schemas/ccai_insights_export_schema.json")
+      deletion_protection = false
+      partitioning = {
+        type  = "DAY"
+        field = "startTimestamp"
+      }
     }
   }
 }

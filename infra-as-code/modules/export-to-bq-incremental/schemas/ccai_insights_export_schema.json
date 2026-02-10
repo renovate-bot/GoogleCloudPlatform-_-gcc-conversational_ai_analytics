@@ -703,19 +703,19 @@
             "type": "BOOLEAN"
           },
           {
-            "description": "The score assigned to the answer.",
+            "description": "The score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
             "mode": "NULLABLE",
             "name": "score",
             "type": "FLOAT"
           },
           {
-            "description": "The potential score assigned to the answer.",
+            "description": "The potential score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
             "mode": "NULLABLE",
             "name": "potentialScore",
             "type": "FLOAT"
           },
           {
-            "description": "The normalized score assigned to the answer.",
+            "description": "The normalized score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
             "mode": "NULLABLE",
             "name": "normalizedScore",
             "type": "FLOAT"
@@ -820,19 +820,19 @@
                 "type": "BOOLEAN"
               },
               {
-                "description": "The score assigned to the answer.",
+                "description": "The score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
                 "mode": "NULLABLE",
                 "name": "score",
                 "type": "FLOAT"
               },
               {
-                "description": "The potential score assigned to the answer.",
+                "description": "The potential score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
                 "mode": "NULLABLE",
                 "name": "potentialScore",
                 "type": "FLOAT"
               },
               {
-                "description": "The normalized score assigned to the answer.",
+                "description": "The normalized score assigned to the answer. This field will be deprecated in favor of the qa_answer_value and qa_answer_values fields.",
                 "mode": "NULLABLE",
                 "name": "normalizedScore",
                 "type": "FLOAT"
@@ -969,25 +969,25 @@
         "type": "STRING"
       },
       {
-        "description": "Quality AI: feedback label of string type.",
+        "description": "Quality AI: feedback label of string type. This field will be deprecated in favor of the qa_answer_label and qa_answer_values_label fields.",
         "mode": "NULLABLE",
         "name": "qaAnswerStringValue",
         "type": "STRING"
       },
       {
-        "description": "Quality AI: feedback label of numeric type.",
+        "description": "Quality AI: feedback label of numeric type. This field will be deprecated in favor of the qa_answer_label and qa_answer_values_label fields.",
         "mode": "NULLABLE",
         "name": "qaAnswerNumericValue",
         "type": "FLOAT"
       },
       {
-        "description": "Quality AI: feedback label of boolean type.",
+        "description": "Quality AI: feedback label of boolean type. This field will be deprecated in favor of the qa_answer_label and qa_answer_values_label fields.",
         "mode": "NULLABLE",
         "name": "qaAnswerBoolValue",
         "type": "BOOLEAN"
       },
       {
-        "description": "Quality AI: feedback label of not applicable (N/A) type.",
+        "description": "Quality AI: feedback label of not applicable (N/A) type. This field will be deprecated in favor of the qa_answer_label and qa_answer_values_label fields.",
         "mode": "NULLABLE",
         "name": "qaAnswerNaValue",
         "type": "BOOLEAN"

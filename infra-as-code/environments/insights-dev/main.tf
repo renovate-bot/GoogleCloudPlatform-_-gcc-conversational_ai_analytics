@@ -51,13 +51,10 @@ resource "google_project_service" "artifact_registry_api" {
 }
 
 ## CCAI Insights Service Account BigQuery access
-resource "google_project_iam_binding" "project" {
+resource "google_project_iam_member" "project" {
   project = var.project_id
   role    = "roles/bigquery.dataEditor"
-
-  members = [
-    "serviceAccount:service-${data.google_project.project.number}@gcp-sa-contactcenterinsights.iam.gserviceaccount.com",
-  ]
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-contactcenterinsights.iam.gserviceaccount.com"
 }
 
 ## Service Account used by Cloud Functions

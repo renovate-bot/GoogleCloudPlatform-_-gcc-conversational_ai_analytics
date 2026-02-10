@@ -33,7 +33,7 @@ module "cf_export_to_bq" {
   bucket_name = var.cf_bucket_name
   bundle_config = {
     source_dir  = "${path.module}/function-source-code"
-    output_path = "${path.module}/function-source-code/bundle.zip"
+    output_path = "${path.module}/bundle.zip"
   }
   service_account = var.service_account_email
 
@@ -56,6 +56,7 @@ module "cf_export_to_bq" {
     event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
     pubsub_topic          = google_pubsub_topic.trigger_topic.id
     service_account_email = var.service_account_email
+    retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
   }
 }
 
@@ -64,7 +65,6 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
   region           = var.region
   schedule         = var.export_to_bq_cron
   description      = "Schedule to export CCAI Insights conversations to BigQuery"
-  attempt_deadline = "${local.timeout_seconds}s" #30 minutes
   retry_config {
     retry_count = 3
   }
@@ -77,7 +77,7 @@ resource "google_cloud_scheduler_job" "ccai_to_bq_scheduler" {
 
 resource "google_pubsub_topic_iam_member" "scheduler_pubsub_publisher" {
   project = google_pubsub_topic.trigger_topic.project
-  topic   = google_pubsub_topic.trigger_topic.name
+  topic   = google_pubsub_topic.trigger_topic.id
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }

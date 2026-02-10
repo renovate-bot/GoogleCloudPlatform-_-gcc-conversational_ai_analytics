@@ -175,6 +175,21 @@ class InsightsHelper:
         
         return response_json
     
+    def add_update_timestamp_column(self):
+        """
+        Adds the update_timestamp column to the staging table if it doesn't exist.
+        This prevents Terraform drift since the staging table schema is managed by Terraform
+        and gets overwritten by the WRITE_TRUNCATE export.
+        """
+        alter_query = f"""
+            ALTER TABLE `{self.staging_table_id}` 
+            ADD COLUMN IF NOT EXISTS update_timestamp TIMESTAMP
+            OPTIONS(description="The timestamp when the row was last updated by the export process.")
+        """
+        print(f"Adding update_timestamp column to {self.staging_table_id} to prevent Terraform drift")
+        query_job = self.bq_client.query(alter_query)
+        query_job.result()
+
     def execute_merge_query(self):
         """
         Executes a merge query in BigQuery to update or insert data from the staging table to the final table.

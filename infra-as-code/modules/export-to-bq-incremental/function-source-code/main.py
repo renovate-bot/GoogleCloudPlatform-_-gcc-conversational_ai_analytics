@@ -77,6 +77,9 @@ def main(cloud_event):
             print(f'Operation "{operation_name}" still running, sleeping...')
             time.sleep(30) # sleep 20 seconds
 
+    print('Adding update_timestamp column to avoid drift')
+    insights_helper.add_update_timestamp_column()
+
     print('Executing merge operation')
     insights_helper.execute_merge_query()
 
